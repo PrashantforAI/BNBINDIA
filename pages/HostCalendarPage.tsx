@@ -65,7 +65,8 @@ const MasterCalendar: React.FC<{
             priceOverrides.set(date, price);
         });
 
-        const updatedOverrides = Array.from(priceOverrides.entries()).map(([date, price]) => ({ date, price }));
+        // FIX: Explicitly cast `date` and `price` to their correct types to resolve the `unknown` type error from the Map iterator.
+        const updatedOverrides = Array.from(priceOverrides.entries()).map(([date, price]) => ({ date: date as string, price: price as number }));
         const updatedProp = await dataService.updateProperty(selectedProperty.id, { priceOverrides: updatedOverrides });
 
         if (updatedProp) {

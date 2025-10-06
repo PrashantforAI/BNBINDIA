@@ -75,6 +75,46 @@ The description should be warm, inviting, and under 150 words. Do not use markdo
     }
 };
 
+export const categorizePropertyImages = async (base64Images: string[]): Promise<string[]> => {
+    if (base64Images.length === 0) return [];
+
+    const imageParts = base64Images.map(imgData => ({
+        inlineData: {
+            mimeType: 'image/jpeg',
+            data: imgData,
+        },
+    }));
+
+    const prompt = `You are an expert real estate photo analyst. For each of the following images, categorize it into one of these categories: Living Room, Bedroom, Kitchen, Bathroom, Exterior, Pool, Dining Area, Other.
+    Return a JSON array of strings, where each string is the category for the corresponding image in the input array. There must be exactly ${base64Images.length} categories in the array.`;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: { parts: [...imageParts, { text: prompt }] },
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.ARRAY,
+                    items: { type: Type.STRING }
+                }
+            }
+        });
+        const jsonText = response.text.trim();
+        const categories = JSON.parse(jsonText);
+        
+        if (Array.isArray(categories) && categories.length === base64Images.length) {
+            return categories;
+        } else {
+            console.error("Mismatch in number of images and categories returned by AI. Expected", base64Images.length, "got", categories.length);
+            return base64Images.map(() => 'Other');
+        }
+    } catch (error) {
+        console.error("Error categorizing images:", error);
+        return base64Images.map(() => 'Other');
+    }
+};
+
 
 export const summarizeReviews = async (reviews: Review[]): Promise<string> => {
      if (reviews.length === 0) return "No reviews yet. Be the first to stay and share your experience!";

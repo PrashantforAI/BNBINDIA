@@ -2,7 +2,7 @@ import React, { useState, useReducer, useEffect } from 'react';
 import { NavigateFunction, Page, Property } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import { dataService } from '../services/dataService';
-import { generateDescription, suggestTitle, suggestPrice } from '../services/geminiService';
+import { generateDescription, suggestTitle, suggestPrice, categorizePropertyImages } from '../services/geminiService';
 
 interface EditListingPageProps {
     navigate: NavigateFunction;
@@ -49,6 +49,8 @@ const EditListingPage: React.FC<EditListingPageProps> = ({ navigate, propertyId 
     const [step, setStep] = useState(1);
     const [state, dispatch] = useReducer(formReducer, {});
     const [isLoadingAI, setIsLoadingAI] = useState(false);
+    const [isCategorizing, setIsCategorizing] = useState(false);
+    const [imageCategories, setImageCategories] = useState<string[]>([]);
     const [hostNotes, setHostNotes] = useState('');
     const [loading, setLoading] = useState(true);
     
@@ -58,6 +60,7 @@ const EditListingPage: React.FC<EditListingPageProps> = ({ navigate, propertyId 
             const prop = await dataService.getPropertyById(propertyId);
             if (prop && prop.hostId === user?.id) {
                 dispatch({ type: 'SET_STATE', payload: prop });
+                setImageCategories(Array(prop.images.length).fill('')); // Existing images have no AI category
             } else {
                 navigate(Page.HOST_LISTINGS);
             }
@@ -68,8 +71,20 @@ const EditListingPage: React.FC<EditListingPageProps> = ({ navigate, propertyId 
 
     const nextStep = () => setStep(s => s + 1);
     const prevStep = () => setStep(s => s - 1);
+    
+    const fileToBase64 = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => {
+                const base64String = (reader.result as string).split(',')[1];
+                resolve(base64String);
+            };
+            reader.onerror = error => reject(error);
+        });
+    };
 
-    // AI Handlers (same as create page)
+    // AI Handlers
     const handleSuggestTitle = async () => {
         if (!state.type || !state.location?.city) return;
         setIsLoadingAI(true);
@@ -92,7 +107,7 @@ const EditListingPage: React.FC<EditListingPageProps> = ({ navigate, propertyId 
         setIsLoadingAI(false);
     };
 
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
             const files = Array.from(e.target.files);
             const currentCount = state.images?.length ?? 0;
@@ -104,10 +119,45 @@ const EditListingPage: React.FC<EditListingPageProps> = ({ navigate, propertyId 
             }
 
             const filesToUpload = files.slice(0, canUploadCount);
-            const imageUrls = filesToUpload.map(file => URL.createObjectURL(file));
+            if(filesToUpload.length === 0) return;
+
+            // FIX: Explicitly type 'file' as File to resolve TypeScript inference issue.
+            const imageUrls = filesToUpload.map((file: File) => URL.createObjectURL(file));
 
             const newImages = [...(state.images || []), ...imageUrls];
+            const newCategories = [...imageCategories, ...Array(filesToUpload.length).fill('Categorizing...')];
+            
             dispatch({ type: 'SET_FIELD', field: 'images', value: newImages });
+            setImageCategories(newCategories);
+            setIsCategorizing(true);
+
+            try {
+                const base64Promises = filesToUpload.map(fileToBase64);
+                const base64Images = await Promise.all(base64Promises);
+                
+                const categories = await categorizePropertyImages(base64Images);
+
+                setImageCategories(prev => {
+                    const updated = [...prev];
+                    const startIndex = currentCount;
+                    for (let i = 0; i < categories.length; i++) {
+                        updated[startIndex + i] = categories[i];
+                    }
+                    return updated;
+                });
+            } catch (error) {
+                console.error("Failed to categorize images:", error);
+                 setImageCategories(prev => {
+                    const updated = [...prev];
+                    const startIndex = currentCount;
+                     for (let i = 0; i < filesToUpload.length; i++) {
+                        updated[startIndex + i] = 'Error';
+                    }
+                    return updated;
+                });
+            } finally {
+                setIsCategorizing(false);
+            }
         }
     };
 
@@ -120,6 +170,10 @@ const EditListingPage: React.FC<EditListingPageProps> = ({ navigate, propertyId 
         }
         newImages.splice(index, 1);
         dispatch({ type: 'SET_FIELD', field: 'images', value: newImages });
+
+        const newCategories = [...imageCategories];
+        newCategories.splice(index, 1);
+        setImageCategories(newCategories);
     };
 
     const handleSubmit = async () => {
@@ -197,6 +251,7 @@ const EditListingPage: React.FC<EditListingPageProps> = ({ navigate, propertyId 
                             <label htmlFor="photo-upload" className={`font-bold py-2 px-4 rounded-lg transition ${canUploadMore ? 'bg-brand text-gray-900 cursor-pointer hover:bg-brand-dark' : 'bg-gray-600 text-gray-400 cursor-not-allowed'}`}>
                                 {canUploadMore ? 'Upload More' : 'Maximum photos reached'}
                             </label>
+                            {isCategorizing && <p className="text-sm text-accent mt-2 text-center">✨ AI is categorizing your new photos...</p>}
                         </div>
                         {state.images && state.images.length > 0 && (
                             <div className="mt-6">
@@ -207,6 +262,11 @@ const EditListingPage: React.FC<EditListingPageProps> = ({ navigate, propertyId 
                                             <img src={img} alt={`Preview ${index + 1}`} className="w-full h-32 object-cover rounded-lg" />
                                             <button onClick={() => handleRemoveImage(index)} className="absolute top-1 right-1 bg-black bg-opacity-50 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">&times;</button>
                                             {index === 0 && <div className="absolute bottom-0 left-0 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-tr-lg rounded-bl-lg">Cover Photo</div>}
+                                            {imageCategories[index] && imageCategories[index] !== '' && (
+                                                <div className={`absolute bottom-0 right-0 text-gray-900 text-xs font-bold px-2 py-1 rounded-tl-lg rounded-br-lg ${imageCategories[index] === 'Categorizing...' ? 'bg-yellow-400' : 'bg-accent/90'}`}>
+                                                    {imageCategories[index]}
+                                                </div>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
