@@ -80,6 +80,7 @@ export enum Page {
     CREATE_LISTING = 'CREATE_LISTING',
     MANAGE_LISTING = 'MANAGE_LISTING',
     INBOX = 'INBOX',
+    HOST_TOOLS = 'HOST_TOOLS',
 }
 
 export interface View {

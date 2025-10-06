@@ -218,4 +218,26 @@ export const dataService = {
             setTimeout(() => resolve(conversation!), 300);
         });
     },
+    getHostDashboardData: (hostId: string): Promise<{
+        properties: Property[],
+        bookings: Booking[],
+        reviews: Review[],
+        conversations: Conversation[],
+    }> => {
+        return new Promise(resolve => {
+            const hostProperties = properties.filter(p => p.hostId === hostId);
+            const hostPropertyIds = hostProperties.map(p => p.id);
+            
+            const hostBookings = bookings.filter(b => hostPropertyIds.includes(b.propertyId));
+            const hostReviews = reviews.filter(r => hostPropertyIds.includes(r.propertyId));
+            const hostConversations = conversations.filter(c => hostPropertyIds.includes(c.propertyId));
+
+            setTimeout(() => resolve({
+                properties: hostProperties,
+                bookings: hostBookings,
+                reviews: hostReviews,
+                conversations: hostConversations,
+            }), 400);
+        });
+    },
 };

@@ -129,3 +129,71 @@ Return only a single number representing the price, without any currency symbols
         return 5000; // Default price on error
     }
 };
+
+export const suggestMessageReply = async (message: string, propertyTitle: string): Promise<string[]> => {
+    const prompt = `You are a helpful and friendly host assistant for a vacation rental platform. A guest sent the following message regarding the property '${propertyTitle}': '${message}'.
+Generate 3 short, distinct, and helpful reply suggestions a host could send. Each suggestion should be a complete, self-contained response.
+Output a JSON array of strings.`;
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.ARRAY,
+                    items: { type: Type.STRING }
+                }
+            }
+        });
+        const jsonText = response.text.trim();
+        return JSON.parse(jsonText);
+    } catch (error) {
+        console.error("Error suggesting message replies:", error);
+        return ["Sorry, I can't generate suggestions right now."];
+    }
+};
+
+export const generatePerformanceInsights = async (properties: Property[], reviews: Review[]): Promise<string[]> => {
+    const prompt = `You are an expert vacation rental analyst. Analyze the following data for a host's listings and reviews in India. Provide 3 actionable, data-driven insights to help them improve their performance. Focus on pricing, amenities, and guest feedback. Each insight should be a short, clear sentence. Output a JSON array of strings.
+Data:
+Properties: ${JSON.stringify(properties.map(p => ({ title: p.title, price: p.pricePerNight, rating: p.rating, city: p.location.city, amenities: p.amenities })))}
+Reviews: ${JSON.stringify(reviews.map(r => r.comment))}`;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.ARRAY,
+                    items: { type: Type.STRING }
+                }
+            }
+        });
+        const jsonText = response.text.trim();
+        return JSON.parse(jsonText);
+    } catch (error) {
+        console.error("Error generating performance insights:", error);
+        return ["Could not generate insights at this time. Please try again later."];
+    }
+};
+
+export const draftReviewResponse = async (review: Review, propertyTitle: string): Promise<string> => {
+    const prompt = `You are a friendly and professional host. A guest left the following review for your property '${propertyTitle}':
+Rating: ${review.rating}/5
+Comment: '${review.comment}'
+
+Draft a warm, polite, and personalized response to this review. If it's positive, express gratitude and invite them back. If it's negative or mixed, acknowledge their feedback gracefully and mention you'll look into the issues. The response should be a single paragraph. Do not use markdown.`;
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+        });
+        return response.text;
+    } catch (error) {
+        console.error("Error drafting review response:", error);
+        return "Thank you for your feedback. We appreciate you taking the time to share your experience.";
+    }
+};

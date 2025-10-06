@@ -11,6 +11,7 @@ import BookingConfirmationPage from './pages/BookingConfirmationPage';
 import CreateListingPage from './pages/CreateListingPage';
 import ManageListingPage from './pages/ManageListingPage';
 import InboxPage from './pages/InboxPage';
+import HostToolsPage from './pages/HostToolsPage';
 
 const AppContent: React.FC = () => {
     const [view, setView] = useState<View>({ page: Page.HOME, params: {} });
@@ -55,6 +56,12 @@ const AppContent: React.FC = () => {
                     return null;
                 }
                 return <InboxPage navigate={navigate} initialBookingId={view.params.bookingId as string} />;
+            case Page.HOST_TOOLS:
+                if (!user || !user.isHost) {
+                    navigate(Page.HOME);
+                    return null;
+                }
+                return <HostToolsPage navigate={navigate} />;
             default:
                 return <HomePage navigate={navigate} />;
         }

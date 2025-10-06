@@ -73,7 +73,8 @@ const UserMenu: React.FC<{ navigate: NavigateFunction }> = ({ navigate }) => {
                 <div className="absolute right-0 mt-2 w-56 bg-gray-800 rounded-lg shadow-lg z-20 py-2 border border-gray-700">
                     <a onClick={() => handleNavigate(Page.DASHBOARD)} className="block px-4 py-2 text-gray-200 hover:bg-gray-700 cursor-pointer">Dashboard</a>
                     <a onClick={() => handleNavigate(Page.INBOX)} className="block px-4 py-2 text-gray-200 hover:bg-gray-700 cursor-pointer">Inbox</a>
-                    <a className="block px-4 py-2 text-gray-200 hover:bg-gray-700 cursor-pointer">{user?.isHost ? "Host Tools" : "Become a Host"}</a>
+                    {user?.isHost && <a onClick={() => handleNavigate(Page.HOST_TOOLS)} className="block px-4 py-2 text-gray-200 hover:bg-gray-700 cursor-pointer">Host Tools</a>}
+                    {!user?.isHost && <a className="block px-4 py-2 text-gray-200 hover:bg-gray-700 cursor-pointer">Become a Host</a>}
                     <div className="border-t my-2 border-gray-700"></div>
                     <a onClick={() => { logout(); setIsOpen(false); }} className="block px-4 py-2 text-gray-200 hover:bg-gray-700 cursor-pointer">Log out</a>
                 </div>
