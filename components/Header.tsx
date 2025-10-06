@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { NavigateFunction, Page } from '../types';
+import { NavigateFunction, Page, HOST_PAGES } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import LoginModal from './LoginModal';
 
 interface HeaderProps {
     navigate: NavigateFunction;
+    currentPage: Page;
 }
 
 const Logo: React.FC<{ navigate: NavigateFunction }> = ({ navigate }) => (
@@ -71,22 +72,23 @@ const UserMenu: React.FC<{ navigate: NavigateFunction }> = ({ navigate }) => {
             </button>
             {isOpen && (
                 <div className="absolute right-0 mt-2 w-56 bg-gray-800 rounded-lg shadow-lg z-20 py-2 border border-gray-700">
-                    <a onClick={() => handleNavigate(Page.DASHBOARD)} className="block px-4 py-2 text-gray-200 hover:bg-gray-700 cursor-pointer">Dashboard</a>
+                    <a onClick={() => handleNavigate(Page.DASHBOARD)} className="block px-4 py-2 text-gray-200 hover:bg-gray-700 cursor-pointer">My Trips</a>
                     <a onClick={() => handleNavigate(Page.INBOX)} className="block px-4 py-2 text-gray-200 hover:bg-gray-700 cursor-pointer">Inbox</a>
-                    {user?.isHost && <a onClick={() => handleNavigate(Page.HOST_TOOLS)} className="block px-4 py-2 text-gray-200 hover:bg-gray-700 cursor-pointer">Host Tools</a>}
-                    {!user?.isHost && <a className="block px-4 py-2 text-gray-200 hover:bg-gray-700 cursor-pointer">Become a Host</a>}
+                    {user?.isHost && <a onClick={() => handleNavigate(Page.HOST_TODAY)} className="block px-4 py-2 text-gray-200 hover:bg-gray-700 cursor-pointer font-semibold">Go to Hosting</a>}
                     <div className="border-t my-2 border-gray-700"></div>
-                    <a onClick={() => { logout(); setIsOpen(false); }} className="block px-4 py-2 text-gray-200 hover:bg-gray-700 cursor-pointer">Log out</a>
+                    <a onClick={() => { logout(); setIsOpen(false); navigate(Page.HOME) }} className="block px-4 py-2 text-gray-200 hover:bg-gray-700 cursor-pointer">Log out</a>
                 </div>
             )}
         </div>
     );
 };
 
-const Header: React.FC<HeaderProps> = ({ navigate }) => {
+const Header: React.FC<HeaderProps> = ({ navigate, currentPage }) => {
     const { user } = useAuth();
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    
+    const isHostView = user?.isHost && HOST_PAGES.includes(currentPage);
 
     const handleHeaderSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -98,8 +100,6 @@ const Header: React.FC<HeaderProps> = ({ navigate }) => {
 
     const renderHostNav = () => (
         <nav className="flex items-center space-x-6 text-sm font-medium text-gray-200">
-            <a onClick={() => navigate(Page.DASHBOARD)} className="hover:text-brand cursor-pointer">Listings</a>
-            <a onClick={() => navigate(Page.INBOX)} className="hover:text-brand cursor-pointer">Messages</a>
             <button onClick={() => navigate(Page.HOME)} className="border border-gray-700 px-4 py-2 rounded-full hover:bg-gray-800 transition">Switch to travelling</button>
         </nav>
     );
@@ -130,7 +130,7 @@ const Header: React.FC<HeaderProps> = ({ navigate }) => {
                 <div className="container mx-auto flex justify-between items-center">
                     <Logo navigate={navigate} />
 
-                    {user?.isHost ? renderHostNav() : renderGuestNav()}
+                    {isHostView ? renderHostNav() : renderGuestNav()}
                     
                     <div className="flex items-center space-x-4 flex-shrink-0">
                         {user ? (

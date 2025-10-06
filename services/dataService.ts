@@ -9,31 +9,32 @@ const users: User[] = [
 
 let properties: Property[] = [
     // Lonavala
-    { id: 'prop1', title: 'Serene Villa with Private Pool', description: '', location: { city: 'Lonavala', state: 'Maharashtra', country: 'India', lat: 18.75, lng: 73.41 }, pricePerNight: 12000, hostId: 'user1', images: ['https://picsum.photos/seed/prop1/800/600', 'https://picsum.photos/seed/prop1a/800/600', 'https://picsum.photos/seed/prop1b/800/600', 'https://picsum.photos/seed/prop1c/800/600', 'https://picsum.photos/seed/prop1d/800/600'], amenities: ['Pool', 'Wifi', 'Air Conditioning', 'Kitchen', 'Parking'], bedrooms: 4, bathrooms: 4, maxGuests: 10, rating: 4.8, reviewCount: 45, type: 'Villa',
+    { id: 'prop1', title: 'Serene Villa with Private Pool', description: '', location: { city: 'Lonavala', state: 'Maharashtra', country: 'India', lat: 18.75, lng: 73.41 }, pricePerNight: 12000, hostId: 'user1', images: ['https://picsum.photos/seed/prop1/800/600', 'https://picsum.photos/seed/prop1a/800/600', 'https://picsum.photos/seed/prop1b/800/600', 'https://picsum.photos/seed/prop1c/800/600', 'https://picsum.photos/seed/prop1d/800/600'], amenities: ['Pool', 'Wifi', 'Air Conditioning', 'Kitchen', 'Parking'], bedrooms: 4, bathrooms: 4, maxGuests: 10, rating: 4.8, reviewCount: 45, type: 'Villa', status: 'listed',
       priceOverrides: [
         { date: '2024-12-24', price: 18000 },
         { date: '2024-12-25', price: 20000 },
         { date: '2024-12-31', price: 25000 },
       ]
     },
-    { id: 'prop2', title: 'Cozy Mountain View Cottage', description: 'A charming cottage nestled in the hills of Lonavala, offering breathtaking views and a tranquil escape. Perfect for couples and small families looking for a peaceful getaway.', location: { city: 'Lonavala', state: 'Maharashtra', country: 'India', lat: 18.76, lng: 73.40 }, pricePerNight: 6500, hostId: 'user3', images: ['https://picsum.photos/seed/prop2/800/600', 'https://picsum.photos/seed/prop2a/800/600'], amenities: ['Wifi', 'Kitchen', 'Heating', 'Garden'], bedrooms: 2, bathrooms: 2, maxGuests: 4, rating: 4.9, reviewCount: 62, type: 'Cottage' },
+    { id: 'prop2', title: 'Cozy Mountain View Cottage', description: 'A charming cottage nestled in the hills of Lonavala, offering breathtaking views and a tranquil escape. Perfect for couples and small families looking for a peaceful getaway.', location: { city: 'Lonavala', state: 'Maharashtra', country: 'India', lat: 18.76, lng: 73.40 }, pricePerNight: 6500, hostId: 'user3', images: ['https://picsum.photos/seed/prop2/800/600', 'https://picsum.photos/seed/prop2a/800/600'], amenities: ['Wifi', 'Kitchen', 'Heating', 'Garden'], bedrooms: 2, bathrooms: 2, maxGuests: 4, rating: 4.9, reviewCount: 62, type: 'Cottage', status: 'listed' },
     // Goa
-    { id: 'prop3', title: 'Luxury Beachfront Apartment', description: 'Stunning apartment with direct access to Candolim beach. Enjoy modern amenities and spectacular ocean views from your private balcony.', location: { city: 'Goa', state: 'Goa', country: 'India', lat: 15.51, lng: 73.76 }, pricePerNight: 9500, hostId: 'user1', images: ['https://picsum.photos/seed/prop3/800/600', 'https://picsum.photos/seed/prop3a/800/600', 'https://picsum.photos/seed/prop3b/800/600'], amenities: ['Wifi', 'Air Conditioning', 'Kitchen', 'Beach Access'], bedrooms: 2, bathrooms: 2, maxGuests: 4, rating: 4.7, reviewCount: 88, type: 'Apartment' },
-    { id: 'prop4', title: 'Traditional Goan-Portuguese House', description: 'Experience authentic Goan hospitality in this beautifully restored Portuguese-style house. Features a lush garden and is a short drive from popular beaches.', location: { city: 'Goa', state: 'Goa', country: 'India', lat: 15.49, lng: 73.82 }, pricePerNight: 15000, hostId: 'user3', images: ['https://picsum.photos/seed/prop4/800/600', 'https://picsum.photos/seed/prop4a/800/600'], amenities: ['Garden', 'Wifi', 'Kitchen', 'Parking'], bedrooms: 5, bathrooms: 5, maxGuests: 12, rating: 4.9, reviewCount: 51, type: 'House' },
+    { id: 'prop3', title: 'Luxury Beachfront Apartment', description: 'Stunning apartment with direct access to Candolim beach. Enjoy modern amenities and spectacular ocean views from your private balcony.', location: { city: 'Goa', state: 'Goa', country: 'India', lat: 15.51, lng: 73.76 }, pricePerNight: 9500, hostId: 'user1', images: ['https://picsum.photos/seed/prop3/800/600', 'https://picsum.photos/seed/prop3a/800/600', 'https://picsum.photos/seed/prop3b/800/600'], amenities: ['Wifi', 'Air Conditioning', 'Kitchen', 'Beach Access'], bedrooms: 2, bathrooms: 2, maxGuests: 4, rating: 4.7, reviewCount: 88, type: 'Apartment', status: 'listed' },
+    { id: 'prop4', title: 'Traditional Goan-Portuguese House', description: 'Experience authentic Goan hospitality in this beautifully restored Portuguese-style house. Features a lush garden and is a short drive from popular beaches.', location: { city: 'Goa', state: 'Goa', country: 'India', lat: 15.49, lng: 73.82 }, pricePerNight: 15000, hostId: 'user3', images: ['https://picsum.photos/seed/prop4/800/600', 'https://picsum.photos/seed/prop4a/800/600'], amenities: ['Garden', 'Wifi', 'Kitchen', 'Parking'], bedrooms: 5, bathrooms: 5, maxGuests: 12, rating: 4.9, reviewCount: 51, type: 'House', status: 'listed' },
     // Mumbai
-    { id: 'prop5', title: 'Chic Urban Loft in Bandra', description: 'A stylish and modern loft in the heart of Bandra West. Close to trendy cafes, boutiques, and the Carter Road promenade.', location: { city: 'Mumbai', state: 'Maharashtra', country: 'India', lat: 19.05, lng: 72.84 }, pricePerNight: 8000, hostId: 'user1', images: ['https://picsum.photos/seed/prop5/800/600', 'https://picsum.photos/seed/prop5a/800/600'], amenities: ['Wifi', 'Air Conditioning', 'Kitchen', 'Elevator'], bedrooms: 1, bathrooms: 1, maxGuests: 2, rating: 4.6, reviewCount: 112, type: 'Apartment' },
+    { id: 'prop5', title: 'Chic Urban Loft in Bandra', description: 'A stylish and modern loft in the heart of Bandra West. Close to trendy cafes, boutiques, and the Carter Road promenade.', location: { city: 'Mumbai', state: 'Maharashtra', country: 'India', lat: 19.05, lng: 72.84 }, pricePerNight: 8000, hostId: 'user1', images: ['https://picsum.photos/seed/prop5/800/600', 'https://picsum.photos/seed/prop5a/800/600'], amenities: ['Wifi', 'Air Conditioning', 'Kitchen', 'Elevator'], bedrooms: 1, bathrooms: 1, maxGuests: 2, rating: 4.6, reviewCount: 112, type: 'Apartment', status: 'listed' },
      // Pune
-    { id: 'prop6', title: 'Spacious Koregaon Park Flat', description: 'A large, airy apartment in the upscale Koregaon Park neighborhood, known for its greenery and vibrant nightlife. Perfect for families or groups.', location: { city: 'Pune', state: 'Maharashtra', country: 'India', lat: 18.53, lng: 73.88 }, pricePerNight: 7200, hostId: 'user3', images: ['https://picsum.photos/seed/prop6/800/600', 'https://picsum.photos/seed/prop6a/800/600'], amenities: ['Wifi', 'Air Conditioning', 'Kitchen', 'Parking', 'Elevator'], bedrooms: 3, bathrooms: 3, maxGuests: 6, rating: 4.7, reviewCount: 75, type: 'Apartment' },
+    { id: 'prop6', title: 'Spacious Koregaon Park Flat', description: 'A large, airy apartment in the upscale Koregaon Park neighborhood, known for its greenery and vibrant nightlife. Perfect for families or groups.', location: { city: 'Pune', state: 'Maharashtra', country: 'India', lat: 18.53, lng: 73.88 }, pricePerNight: 7200, hostId: 'user3', images: ['https://picsum.photos/seed/prop6/800/600', 'https://picsum.photos/seed/prop6a/800/600'], amenities: ['Wifi', 'Air Conditioning', 'Kitchen', 'Parking', 'Elevator'], bedrooms: 3, bathrooms: 3, maxGuests: 6, rating: 4.7, reviewCount: 75, type: 'Apartment', status: 'unlisted' },
     // Bangalore
-    { id: 'prop7', title: 'Tech Hub Penthouse, Indiranagar', description: 'Luxurious penthouse with a rooftop terrace in the bustling Indiranagar area. Ideal for business travelers and those looking to explore Bangalore\'s famous food scene.', location: { city: 'Bangalore', state: 'Karnataka', country: 'India', lat: 12.97, lng: 77.64 }, pricePerNight: 11000, hostId: 'user1', images: ['https://picsum.photos/seed/prop7/800/600', 'https://picsum.photos/seed/prop7a/800/600'], amenities: ['Wifi', 'Air Conditioning', 'Kitchen', 'Terrace', 'Workspace'], bedrooms: 2, bathrooms: 3, maxGuests: 4, rating: 4.8, reviewCount: 95, type: 'Apartment' },
+    { id: 'prop7', title: 'Tech Hub Penthouse, Indiranagar', description: 'Luxurious penthouse with a rooftop terrace in the bustling Indiranagar area. Ideal for business travelers and those looking to explore Bangalore\'s famous food scene.', location: { city: 'Bangalore', state: 'Karnataka', country: 'India', lat: 12.97, lng: 77.64 }, pricePerNight: 11000, hostId: 'user1', images: ['https://picsum.photos/seed/prop7/800/600', 'https://picsum.photos/seed/prop7a/800/600'], amenities: ['Wifi', 'Air Conditioning', 'Kitchen', 'Terrace', 'Workspace'], bedrooms: 2, bathrooms: 3, maxGuests: 4, rating: 4.8, reviewCount: 95, type: 'Apartment', status: 'listed' },
     // Delhi
-    { id: 'prop8', title: 'Heritage Haveli in Hauz Khas', description: 'Stay in a piece of history. This beautifully restored Haveli overlooks the Hauz Khas lake and fort ruins, offering a unique blend of tradition and modern comfort.', location: { city: 'Delhi', state: 'Delhi', country: 'India', lat: 28.55, lng: 77.19 }, pricePerNight: 13500, hostId: 'user3', images: ['https://picsum.photos/seed/prop8/800/600', 'https://picsum.photos/seed/prop8a/800/600'], amenities: ['Wifi', 'Air Conditioning', 'Courtyard', 'Kitchen'], bedrooms: 3, bathrooms: 3, maxGuests: 6, rating: 4.9, reviewCount: 68, type: 'House' },
+    { id: 'prop8', title: 'Heritage Haveli in Hauz Khas', description: 'Stay in a piece of history. This beautifully restored Haveli overlooks the Hauz Khas lake and fort ruins, offering a unique blend of tradition and modern comfort.', location: { city: 'Delhi', state: 'Delhi', country: 'India', lat: 28.55, lng: 77.19 }, pricePerNight: 13500, hostId: 'user3', images: ['https://picsum.photos/seed/prop8/800/600', 'https://picsum.photos/seed/prop8a/800/600'], amenities: ['Wifi', 'Air Conditioning', 'Courtyard', 'Kitchen'], bedrooms: 3, bathrooms: 3, maxGuests: 6, rating: 4.9, reviewCount: 68, type: 'House', status: 'listed' },
 ];
 
 let bookings: Booking[] = [
-    { id: 'book1', propertyId: 'prop1', guestId: 'user2', startDate: new Date('2024-12-22'), endDate: new Date('2024-12-26'), totalPrice: 60000, guests: 8, status: 'upcoming' },
+    { id: 'book1', propertyId: 'prop1', guestId: 'user2', startDate: new Date(), endDate: new Date(new Date().setDate(new Date().getDate() + 4)), totalPrice: 60000, guests: 8, status: 'upcoming' },
     { id: 'book2', propertyId: 'prop3', guestId: 'user4', startDate: new Date('2024-06-20'), endDate: new Date('2024-06-25'), totalPrice: 47500, guests: 4, status: 'completed' },
-    { id: 'book3', propertyId: 'prop5', guestId: 'user2', startDate: new Date('2024-09-01'), endDate: new Date('2024-09-05'), totalPrice: 32000, guests: 2, status: 'upcoming' },
+    { id: 'book3', propertyId: 'prop5', guestId: 'user2', startDate: new Date(new Date().setDate(new Date().getDate() + 10)), endDate: new Date(new Date().setDate(new Date().getDate() + 14)), totalPrice: 32000, guests: 2, status: 'upcoming' },
+    { id: 'book4', propertyId: 'prop1', guestId: 'user4', startDate: new Date(new Date().setDate(new Date().getDate() - 1)), endDate: new Date(new Date().setDate(new Date().getDate())), totalPrice: 12000, guests: 2, status: 'upcoming'},
 ];
 
 const reviews: Review[] = [
@@ -49,8 +50,8 @@ let conversations: Conversation[] = [
         propertyId: 'prop1',
         participantIds: ['user1', 'user2'],
         messages: [
-            { id: 'msg1', senderId: 'user2', text: 'Hi Rohan, looking forward to our stay! Can we check in a bit earlier, around 1 PM?', timestamp: new Date(new Date('2024-12-20').setHours(10, 30)) },
-            { id: 'msg2', senderId: 'user1', text: 'Hi Priya, glad to have you! 1 PM should be fine. We\'ll have the villa ready for you.', timestamp: new Date(new Date('2024-12-20').setHours(11, 15)) },
+            { id: 'msg1', senderId: 'user2', text: 'Hi Rohan, looking forward to our stay! Can we check in a bit earlier, around 1 PM?', timestamp: new Date(new Date().setDate(new Date().getDate() - 2)) },
+            { id: 'msg2', senderId: 'user1', text: 'Hi Priya, glad to have you! 1 PM should be fine. We\'ll have the villa ready for you.', timestamp: new Date(new Date().setDate(new Date().getDate() - 2)) },
         ],
     },
     {
@@ -58,7 +59,7 @@ let conversations: Conversation[] = [
         propertyId: 'prop5',
         participantIds: ['user1', 'user2'],
         messages: [
-             { id: 'msg3', senderId: 'user2', text: 'Hey, just confirming our booking for next week!', timestamp: new Date(new Date('2024-08-25').setHours(18, 0)) },
+             { id: 'msg3', senderId: 'user2', text: 'Hey, just confirming our booking for next week!', timestamp: new Date(new Date().setDate(new Date().getDate() - 3)) },
         ],
     }
 ];
@@ -66,7 +67,7 @@ let conversations: Conversation[] = [
 export const dataService = {
     getProperties: (filters: SearchFilters = {}): Promise<Property[]> => {
         return new Promise(resolve => {
-            let filteredProperties = [...properties];
+            let filteredProperties = properties.filter(p => p.status === 'listed');
             
             if (filters.location) {
                 filteredProperties = filteredProperties.filter(p => 
@@ -117,8 +118,15 @@ export const dataService = {
     },
     getBookingsByUserId: (userId: string): Promise<Booking[]> => {
         return new Promise(resolve => {
-            const userBookings = bookings.filter(b => b.guestId === userId || properties.find(p => p.id === b.propertyId)?.hostId === userId);
+            const userBookings = bookings.filter(b => b.guestId === userId);
             setTimeout(() => resolve(userBookings), 200);
+        });
+    },
+    getHostReservations: (hostId: string): Promise<Booking[]> => {
+        return new Promise(resolve => {
+            const hostProperties = properties.filter(p => p.hostId === hostId).map(p => p.id);
+            const hostBookings = bookings.filter(b => hostProperties.includes(b.propertyId));
+            setTimeout(() => resolve(hostBookings), 200);
         });
     },
     getBookingsByPropertyId: (propertyId: string): Promise<Booking[]> => {
@@ -158,7 +166,17 @@ export const dataService = {
         return new Promise((resolve) => {
             const propertyIndex = properties.findIndex(p => p.id === propertyId);
             if (propertyIndex !== -1) {
-                properties[propertyIndex] = { ...properties[propertyIndex], ...updatedData };
+                // Deep merge for nested objects like location
+                const originalProperty = properties[propertyIndex];
+                const newPropertyData = {
+                    ...originalProperty,
+                    ...updatedData,
+                    location: {
+                        ...originalProperty.location,
+                        ...(updatedData.location || {}),
+                    },
+                };
+                properties[propertyIndex] = newPropertyData;
                 setTimeout(() => resolve(properties[propertyIndex]), 300);
             } else {
                 setTimeout(() => resolve(undefined), 300);

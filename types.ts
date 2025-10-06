@@ -19,6 +19,7 @@ export interface Property {
     rating: number;
     reviewCount: number;
     type: 'Villa' | 'Apartment' | 'House' | 'Cottage';
+    status: 'listed' | 'unlisted';
     priceOverrides?: PriceOverride[];
 }
 
@@ -72,16 +73,31 @@ export interface Conversation {
 
 
 export enum Page {
+    // Guest Pages
     HOME = 'HOME',
     SEARCH = 'SEARCH',
     PROPERTY = 'PROPERTY',
     DASHBOARD = 'DASHBOARD',
     CONFIRMATION = 'CONFIRMATION',
+    INBOX = 'INBOX',
+
+    // Host Pages
+    HOST_TODAY = 'HOST_TODAY',
+    HOST_LISTINGS = 'HOST_LISTINGS',
+    HOST_CALENDAR = 'HOST_CALENDAR',
+    HOST_RESERVATIONS = 'HOST_RESERVATIONS',
+    HOST_INSIGHTS = 'HOST_INSIGHTS',
+    HOST_EARNINGS = 'HOST_EARNINGS',
     CREATE_LISTING = 'CREATE_LISTING',
     MANAGE_LISTING = 'MANAGE_LISTING',
-    INBOX = 'INBOX',
-    HOST_TOOLS = 'HOST_TOOLS',
+    EDIT_LISTING = 'EDIT_LISTING',
 }
+
+export const HOST_PAGES = [
+    Page.HOST_TODAY, Page.HOST_LISTINGS, Page.HOST_CALENDAR, Page.HOST_RESERVATIONS,
+    Page.HOST_INSIGHTS, Page.HOST_EARNINGS, Page.CREATE_LISTING, Page.MANAGE_LISTING,
+    Page.EDIT_LISTING,
+];
 
 export interface View {
     page: Page;
