@@ -114,7 +114,6 @@ const CreateListingPage: React.FC<CreateListingPageProps> = ({ navigate }) => {
             const filesToUpload = files.slice(0, canUploadCount);
             if(filesToUpload.length === 0) return;
 
-            // FIX: Explicitly type 'file' as File to resolve TypeScript inference issue.
             const imageUrls = filesToUpload.map((file: File) => URL.createObjectURL(file));
 
             const newImages = [...(state.images || []), ...imageUrls];
@@ -199,7 +198,7 @@ const CreateListingPage: React.FC<CreateListingPageProps> = ({ navigate }) => {
                                     {PROPERTY_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                                 </select>
                             </div>
-                             <div className="grid grid-cols-2 gap-4">
+                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block font-medium text-gray-200">City</label>
                                     <input type="text" placeholder="e.g., Lonavala" value={state.location?.city} onChange={e => dispatch({type: 'SET_LOCATION_FIELD', field: 'city', value: e.target.value})} className="w-full p-2 bg-gray-700 border border-gray-600 rounded-md" />
@@ -209,7 +208,7 @@ const CreateListingPage: React.FC<CreateListingPageProps> = ({ navigate }) => {
                                     <input type="text" placeholder="e.g., Maharashtra" value={state.location?.state} onChange={e => dispatch({type: 'SET_LOCATION_FIELD', field: 'state', value: e.target.value})} className="w-full p-2 bg-gray-700 border border-gray-600 rounded-md" />
                                 </div>
                             </div>
-                            <div className="grid grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <div>
                                     <label className="block font-medium text-gray-200">Max Guests</label>
                                     <input type="number" min="1" value={state.maxGuests} onChange={e => dispatch({type: 'SET_FIELD', field: 'maxGuests', value: Number(e.target.value)})} className="w-full p-2 bg-gray-700 border border-gray-600 rounded-md" />
@@ -232,8 +231,11 @@ const CreateListingPage: React.FC<CreateListingPageProps> = ({ navigate }) => {
                         <h2 className="text-2xl font-bold mb-6">What amenities do you offer?</h2>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                             {ALL_AMENITIES.map(amenity => (
-                                <label key={amenity} className={`flex items-center space-x-3 p-4 border rounded-lg cursor-pointer transition-colors ${state.amenities?.includes(amenity) ? 'bg-brand/10 text-brand border-brand' : 'bg-gray-800 border-gray-700 hover:bg-gray-700'}`}>
-                                    <input type="checkbox" checked={state.amenities?.includes(amenity)} onChange={() => dispatch({type: 'TOGGLE_AMENITY', amenity})} className="h-5 w-5 rounded bg-gray-700 border-gray-600 text-brand focus:ring-brand" />
+                                <label key={amenity} className={`flex items-center space-x-3 p-4 border rounded-lg cursor-pointer transition-all duration-200 ${state.amenities?.includes(amenity) ? 'bg-brand/10 text-brand border-brand shadow-md' : 'bg-gray-800 border-gray-700 hover:bg-gray-700/50 hover:border-gray-600'}`}>
+                                    <input type="checkbox" checked={state.amenities?.includes(amenity)} onChange={() => dispatch({type: 'TOGGLE_AMENITY', amenity})} className="hidden" />
+                                    <span className={`w-5 h-5 rounded-md border-2 flex-shrink-0 ${state.amenities?.includes(amenity) ? 'bg-brand border-brand-dark' : 'border-gray-600'}`}>
+                                        {state.amenities?.includes(amenity) && <svg className="w-full h-full text-gray-900" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>}
+                                    </span>
                                     <span>{amenity}</span>
                                 </label>
                             ))}
@@ -294,7 +296,7 @@ const CreateListingPage: React.FC<CreateListingPageProps> = ({ navigate }) => {
                                 <label className="block font-medium text-gray-200">Title</label>
                                 <div className="flex items-center space-x-2">
                                     <input type="text" placeholder="Catchy title for your property" value={state.title} onChange={e => dispatch({type: 'SET_FIELD', field: 'title', value: e.target.value})} className="w-full p-2 bg-gray-700 border border-gray-600 rounded-md" />
-                                    <button onClick={handleSuggestTitle} disabled={isLoadingAI} className="bg-accent text-gray-900 font-semibold px-3 py-2 rounded-md text-sm shrink-0 hover:bg-accent-dark disabled:bg-opacity-60">✨ Suggest</button>
+                                    <button onClick={handleSuggestTitle} disabled={isLoadingAI} className="bg-accent text-gray-900 font-bold px-3 py-2 rounded-md text-sm shrink-0 hover:bg-accent-dark disabled:bg-opacity-60">✨ Suggest</button>
                                 </div>
                             </div>
                             <div>
@@ -312,7 +314,7 @@ const CreateListingPage: React.FC<CreateListingPageProps> = ({ navigate }) => {
                                     className="w-full p-2 bg-gray-700 border border-gray-600 rounded-md"
                                  />
                             </div>
-                            <button onClick={handleGenerateDescription} disabled={isLoadingAI} className="mt-2 bg-accent text-gray-900 font-semibold px-3 py-2 rounded-md text-sm hover:bg-accent-dark disabled:bg-opacity-60">✨ Generate with AI</button>
+                            <button onClick={handleGenerateDescription} disabled={isLoadingAI} className="mt-2 bg-accent text-gray-900 font-bold px-3 py-2 rounded-md text-sm hover:bg-accent-dark disabled:bg-opacity-60">✨ Generate with AI</button>
                         </div>
                     </div>
                 );
@@ -326,7 +328,7 @@ const CreateListingPage: React.FC<CreateListingPageProps> = ({ navigate }) => {
                                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
                                 <input type="number" placeholder="5000" min="0" value={state.pricePerNight} onChange={e => dispatch({type: 'SET_FIELD', field: 'pricePerNight', value: Number(e.target.value)})} className="w-full p-2 pl-6 bg-gray-700 border border-gray-600 rounded-md" />
                             </div>
-                             <button onClick={handleSuggestPrice} disabled={isLoadingAI} className="mt-4 bg-accent text-gray-900 font-semibold px-3 py-2 rounded-md text-sm hover:bg-accent-dark disabled:bg-opacity-60">✨ Suggest a competitive price</button>
+                             <button onClick={handleSuggestPrice} disabled={isLoadingAI} className="mt-4 bg-accent text-gray-900 font-bold px-3 py-2 rounded-md text-sm hover:bg-accent-dark disabled:bg-opacity-60">✨ Suggest a competitive price</button>
                              {isLoadingAI && <p className="text-sm text-accent mt-2">AI is thinking...</p>}
                         </div>
                     </div>
@@ -341,17 +343,17 @@ const CreateListingPage: React.FC<CreateListingPageProps> = ({ navigate }) => {
             <h1 className="text-3xl font-bold mb-2 text-gray-50">Become a host</h1>
             <p className="text-gray-400 mb-8">Let's get your place set up for guests.</p>
 
-            <div className="max-w-2xl mx-auto bg-gray-800 p-8 rounded-lg border border-gray-700">
+            <div className="max-w-2xl mx-auto bg-gray-800 p-6 md:p-8 rounded-lg border border-gray-700">
                 <ProgressBar step={step} totalSteps={5} />
                 <div className="min-h-[400px]">
                     {renderStep()}
                 </div>
                 <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-700">
-                    <button onClick={prevStep} disabled={step === 1} className="text-gray-200 font-bold py-2 px-4 rounded disabled:opacity-50">Back</button>
+                    <button onClick={prevStep} disabled={step === 1} className="text-gray-200 font-bold py-2 px-4 rounded disabled:opacity-50 hover:bg-gray-700/50">Back</button>
                     {step < 5 ? (
-                        <button onClick={nextStep} className="bg-brand text-gray-900 font-bold py-2 px-6 rounded-lg hover:bg-brand-dark">Next</button>
+                        <button onClick={nextStep} className="bg-brand text-gray-900 font-bold py-2 px-6 rounded-lg hover:bg-brand-dark transition-colors">Next</button>
                     ) : (
-                        <button onClick={handleSubmit} className="bg-green-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700">Publish Listing</button>
+                        <button onClick={handleSubmit} className="bg-green-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700 transition-colors">Publish Listing</button>
                     )}
                 </div>
             </div>

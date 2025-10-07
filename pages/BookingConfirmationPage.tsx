@@ -36,16 +36,16 @@ const BookingConfirmationPage: React.FC<BookingConfirmationPageProps> = ({ navig
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                  </svg>
             </div>
-            <h1 className="text-4xl font-bold text-gray-50 mb-4">Your booking is confirmed!</h1>
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-50 mb-4">Your booking is confirmed!</h1>
             <p className="text-lg text-gray-400 mb-8">You're all set for your trip to {property.location.city}. A confirmation has been sent to your email.</p>
 
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-8 text-left">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 md:p-8 text-left">
                 <div className="flex flex-col md:flex-row md:space-x-8">
                     <img src={property.images[0]} alt={property.title} className="w-full md:w-1/3 h-48 object-cover rounded-lg mb-4 md:mb-0" />
                     <div className="flex-grow">
-                        <h2 className="text-2xl font-semibold text-gray-50">{property.title}</h2>
+                        <h2 className="text-xl md:text-2xl font-semibold text-gray-50">{property.title}</h2>
                         <p className="text-gray-400 mb-4">{property.location.city}, {property.location.state}</p>
-                        <div className="grid grid-cols-2 gap-4 text-sm mt-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm mt-4">
                             <div>
                                 <p className="font-bold text-gray-200">Check-in</p>
                                 <p className="text-gray-300">{booking.startDate.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>

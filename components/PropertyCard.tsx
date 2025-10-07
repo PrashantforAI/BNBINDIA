@@ -35,33 +35,33 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, navigate }) => {
 
     return (
         <div 
-            className="group cursor-pointer"
+            className="group cursor-pointer transition-all duration-300 hover:-translate-y-1"
             onClick={() => navigate(Page.PROPERTY, { id: property.id })}
         >
-            <div className="relative overflow-hidden rounded-lg">
+            <div className="relative overflow-hidden rounded-xl shadow-lg group-hover:shadow-2xl group-hover:shadow-black/30 transition-shadow duration-300">
                 <img 
                     src={property.images[0]} 
                     alt={property.title}
-                    className="w-full h-64 object-cover transition-transform duration-300"
+                    className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
                 <HeartIcon 
                     filled={isWishlisted}
                     onClick={handleWishlistClick}
-                    className={`absolute top-3 right-3 w-7 h-7 cursor-pointer transition-transform duration-200 active:scale-90 drop-shadow-lg ${isWishlisted ? 'text-red-500' : 'text-transparent'}`}
+                    className={`absolute top-4 right-4 w-7 h-7 cursor-pointer transition-all duration-300 active:scale-90 drop-shadow-lg transform hover:scale-110 ${isWishlisted ? 'text-red-500' : 'text-transparent'}`}
                 />
             </div>
-            <div className="mt-3">
+            <div className="mt-3 px-1">
                 <div className="flex justify-between items-start">
-                    <h3 className="font-semibold text-gray-200 truncate pr-2">{property.title}</h3>
+                    <h3 className="font-bold text-gray-50 truncate pr-2">{property.title}</h3>
                     <div className="flex items-center space-x-1 flex-shrink-0">
                         <StarIcon className="w-4 h-4 text-yellow-400" />
-                        <span className="text-gray-200 text-sm">{property.rating.toFixed(1)}</span>
+                        <span className="text-gray-200 text-sm font-semibold">{property.rating.toFixed(1)}</span>
                     </div>
                 </div>
                 <p className="text-gray-400 text-sm">{property.location.city}, {property.location.state}</p>
                 <p className="mt-1">
-                    <span className="font-semibold text-gray-50">₹{property.pricePerNight.toLocaleString('en-IN')}</span>
+                    <span className="font-semibold text-gray-50 text-lg">₹{property.pricePerNight.toLocaleString('en-IN')}</span>
                     <span className="text-gray-400"> night</span>
                 </p>
             </div>

@@ -48,7 +48,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
     };
 
     return (
-        <div className="bg-gray-800/80 backdrop-blur-sm p-4 rounded-lg max-w-4xl mx-auto border border-gray-700">
+        <div className="bg-gray-800/80 backdrop-blur-sm p-4 rounded-xl max-w-4xl mx-auto border border-gray-700 shadow-2xl shadow-black/30">
             <div className="grid grid-cols-1 md:grid-cols-4 items-center">
                 <div className="p-2">
                     <label htmlFor="location" className="block text-xs font-bold text-gray-200 px-2">Location</label>
@@ -95,7 +95,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
                             className="w-full text-sm text-gray-200 focus:outline-none px-2 py-1 bg-transparent"
                         />
                     </div>
-                    <button onClick={handleSearch} className="bg-brand rounded-full p-3 text-gray-900 hover:bg-brand-dark transition-colors">
+                    <button onClick={handleSearch} className="bg-brand rounded-full p-3 text-white hover:bg-brand-dark transition-colors">
                         <SearchIcon className="w-5 h-5" />
                     </button>
                 </div>
@@ -108,12 +108,12 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
                         value={aiQuery}
                         onChange={(e) => setAiQuery(e.target.value)}
                         placeholder="e.g., pet-friendly villa with pool in Lonavala for Diwali"
-                        className="w-full text-sm text-gray-200 focus:outline-none px-2 py-1 bg-gray-700 rounded-md"
+                        className="w-full text-sm text-gray-200 focus:outline-none px-2 py-1.5 bg-gray-700/80 rounded-md focus:ring-2 focus:ring-accent"
                         onKeyDown={(e) => e.key === 'Enter' && handleAiSearch()}
                         disabled={isLoadingAi}
                     />
-                    <button onClick={handleAiSearch} disabled={isLoadingAi} className="bg-accent text-gray-900 px-4 py-2 rounded-full text-sm font-semibold hover:bg-accent-dark transition disabled:bg-opacity-50">
-                        {isLoadingAi ? 'Searching...' : 'Go'}
+                    <button onClick={handleAiSearch} disabled={isLoadingAi} className="bg-accent text-gray-900 px-4 py-2 rounded-full text-sm font-bold hover:bg-accent-dark transition disabled:bg-opacity-50">
+                        {isLoadingAi ? '...' : 'Go'}
                     </button>
                 </div>
             </div>

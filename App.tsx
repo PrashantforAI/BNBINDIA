@@ -29,10 +29,12 @@ import EditListingPage from './pages/EditListingPage';
 const AppContent: React.FC = () => {
     const [view, setView] = useState<View>({ page: Page.HOME, params: {} });
     const { user } = useAuth();
+    const [isHostSidebarOpen, setIsHostSidebarOpen] = useState(false);
 
     const navigate = useCallback((page: Page, params: Record<string, any> = {}) => {
         setView({ page, params });
         window.scrollTo(0, 0);
+        setIsHostSidebarOpen(false); // Close sidebar on navigation
     }, []);
 
     const isHostView = useMemo(() => user?.isHost && HOST_PAGES.includes(view.page), [user, view.page]);
@@ -78,8 +80,8 @@ const AppContent: React.FC = () => {
     if (isHostView) {
         return (
              <div className="flex min-h-screen bg-gray-900 text-gray-200 font-sans">
-                <HostDashboardLayout navigate={navigate} currentPage={view.page} />
-                <main className="flex-grow p-8 overflow-auto">
+                <HostDashboardLayout navigate={navigate} currentPage={view.page} isOpen={isHostSidebarOpen} setIsOpen={setIsHostSidebarOpen} />
+                <main className="flex-grow p-4 md:p-8 overflow-auto">
                     {renderPage}
                 </main>
             </div>
@@ -88,7 +90,7 @@ const AppContent: React.FC = () => {
 
     return (
         <div className="flex flex-col min-h-screen bg-gray-900 text-gray-200 font-sans">
-            <Header navigate={navigate} currentPage={view.page} />
+            <Header navigate={navigate} currentPage={view.page} onMenuClick={() => setIsHostSidebarOpen(true)} />
             <main className="flex-grow">
                 {renderPage}
             </main>

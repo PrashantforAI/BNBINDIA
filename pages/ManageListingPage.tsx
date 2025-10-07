@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { NavigateFunction, Page, Property, Booking, PriceOverride } from '../types';
+// FIX: Import the 'User' type.
+import { NavigateFunction, Page, Property, Booking, PriceOverride, CalendarEvent, User } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import { dataService } from '../services/dataService';
 import HostCalendar from '../components/HostCalendar';
+import BackButton from '../components/BackButton';
 
 interface ManageListingPageProps {
     navigate: NavigateFunction;
@@ -24,6 +26,7 @@ const ManageListingPage: React.FC<ManageListingPageProps> = ({ navigate, propert
     const [property, setProperty] = useState<Property | null>(null);
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [loading, setLoading] = useState(true);
+    const [guests, setGuests] = useState<Record<string, User>>({});
 
     useEffect(() => {
         if (!user || !propertyId) return;
@@ -36,6 +39,11 @@ const ManageListingPage: React.FC<ManageListingPageProps> = ({ navigate, propert
                 setProperty(propData);
                 const propBookings = await dataService.getBookingsByPropertyId(propertyId);
                 setBookings(propBookings);
+                
+                const guestIds = [...new Set(propBookings.map(b => b.guestId))];
+                const guestsData = await Promise.all(guestIds.map(id => dataService.getUserById(id)));
+                setGuests(guestsData.reduce((acc, g) => g ? { ...acc, [g.id]: g } : acc, {}));
+
             } else {
                 navigate(Page.HOST_LISTINGS);
             }
@@ -45,29 +53,26 @@ const ManageListingPage: React.FC<ManageListingPageProps> = ({ navigate, propert
         fetchListingData();
     }, [user, propertyId, navigate]);
 
-    const handlePriceChange = async (overrides: PriceOverride[]) => {
+    const handlePropertyUpdate = async (updates: Partial<Property>) => {
         if (!property) return;
 
-        const updatedProperty = await dataService.updateProperty(property.id, { priceOverrides: overrides });
+        const updatedProperty = await dataService.updateProperty(property.id, updates);
         if (updatedProperty) {
             setProperty(updatedProperty);
         }
     };
+    
+    const handlePriceChange = (overrides: PriceOverride[]) => handlePropertyUpdate({ priceOverrides: overrides });
+    const handleEventsChange = (events: CalendarEvent[]) => handlePropertyUpdate({ events });
+    const handleStatusChange = (newStatus: 'listed' | 'unlisted') => handlePropertyUpdate({ status: newStatus });
 
-    const handleStatusChange = async (newStatus: 'listed' | 'unlisted') => {
-        if (!property) return;
-
-        const updatedProperty = await dataService.updateProperty(property.id, { status: newStatus });
-        if (updatedProperty) {
-            setProperty(updatedProperty);
-        }
-    };
 
     if (loading) return <div className="py-20 text-center">Loading listing details...</div>;
     if (!property) return null;
 
     return (
         <div className="space-y-8">
+            <BackButton onClick={() => navigate(Page.HOST_LISTINGS)} className="mb-4" />
              <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-50">{property.title}</h1>
@@ -98,7 +103,13 @@ const ManageListingPage: React.FC<ManageListingPageProps> = ({ navigate, propert
 
             <div>
                 <h2 className="text-2xl font-bold mb-4 text-gray-50">Calendar & Pricing</h2>
-                <HostCalendar property={property} bookings={bookings} onPriceChange={handlePriceChange} />
+                <HostCalendar 
+                    property={property} 
+                    bookings={bookings} 
+                    guests={guests}
+                    onPriceChange={handlePriceChange} 
+                    onEventsChange={handleEventsChange}
+                />
             </div>
         </div>
     );

@@ -18,15 +18,16 @@
             },
             colors: {
               brand: {
-                DEFAULT: '#00c7d4', // Vibrant Teal
-                dark: '#00a8b3',
+                DEFAULT: '#00BFA6', // A slightly deeper, premium teal
+                dark: '#00A994',
               },
               accent: {
-                DEFAULT: '#00f6ff', // Glowing Cyan
-                dark: '#00d1db',
+                DEFAULT: '#A6FF00', // Electric lime for highlights
+                dark: '#90E000',
               },
               gray: {
                 900: '#121212', // Primary Background
+                850: '#171717', // Subtle background variation
                 800: '#1E1E1E', // Content Background
                 700: '#2A2A2A', // Borders & Dividers
                 600: '#3A3A3A', // Subtle UI elements
@@ -35,10 +36,45 @@
                 50: '#FFFFFF',   // Bright white text
               }
             },
+            animation: {
+              'fade-in': 'fadeIn 0.3s ease-out',
+              'scale-in': 'scaleIn 0.3s ease-out',
+            },
+            keyframes: {
+              fadeIn: {
+                '0%': { opacity: 0 },
+                '100%': { opacity: 1 },
+              },
+              scaleIn: {
+                '0%': { transform: 'scale(0.95)', opacity: 0 },
+                '100%': { transform: 'scale(1)', opacity: 1 },
+              }
+            }
           },
         },
       }
     </script>
+    <style>
+      body {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      /* Custom Scrollbar for a polished look */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #1E1E1E;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #3A3A3A;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #4A4A4A;
+      }
+    </style>
 <script type="importmap">
 {
   "imports": {

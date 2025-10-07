@@ -4,6 +4,8 @@ import { NavigateFunction, Page } from '../types';
 interface HostDashboardLayoutProps {
     navigate: NavigateFunction;
     currentPage: Page;
+    isOpen: boolean;
+    setIsOpen: (isOpen: boolean) => void;
 }
 
 const NavLink: React.FC<{
@@ -35,9 +37,15 @@ const ReservationsIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className
 const InsightsIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 3.5a1.5 1.5 0 013 0V4a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a1 1 0 100 2h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-.5a1.5 1.5 0 00-3 0v.5a1 1 0 01-1 1H6a1 1 0 01-1-1v-3a1 1 0 011-1h1a1 1 0 100-2H6a1 1 0 01-1-1V6a1 1 0 011-1h3a1 1 0 001-1v-.5z" /></svg>;
 const EarningsIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M8.433 7.418c.155-.103.346-.196.552-.257m.046 4.721a.75.75 0 00-.705-1.742a.75.75 0 00-.705 1.742m.705 1.742a.75.75 0 00.705-1.742a.75.75 0 00-.705 1.742m0 1.742a.75.75 0 00.705-1.742a.75.75 0 00-.705 1.742M10 20a10 10 0 100-20 10 10 0 000 20zM7 13a1 1 0 100-2 1 1 0 000 2zm.002-4a1 1 0 100 2 1 1 0 000-2zm3.996-1a1 1 0 100 2 1 1 0 000-2zm1.996 4a1 1 0 100-2 1 1 0 000 2z" /></svg>;
 
-const HostDashboardLayout: React.FC<HostDashboardLayoutProps> = ({ navigate, currentPage }) => {
+const HostDashboardLayout: React.FC<HostDashboardLayoutProps> = ({ navigate, currentPage, isOpen, setIsOpen }) => {
     return (
-        <aside className="w-64 bg-gray-800 p-4 flex-shrink-0 flex flex-col border-r border-gray-700">
+        <>
+        {/* Overlay for mobile */}
+        <div 
+            className={`fixed inset-0 bg-black/50 z-20 lg:hidden transition-opacity ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+            onClick={() => setIsOpen(false)}
+        ></div>
+        <aside className={`fixed lg:relative inset-y-0 left-0 w-64 bg-gray-800 p-4 flex-shrink-0 flex flex-col border-r border-gray-700 z-30 transform transition-transform lg:transform-none ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
              <div onClick={() => navigate(Page.HOME)} className="flex items-center space-x-2 cursor-pointer flex-shrink-0 px-2 mb-8">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" className="w-8 h-8">
                     <defs><filter id="logo-glow-sidebar"><feGaussianBlur stdDeviation="3.5" result="coloredBlur" in="SourceGraphic" /><feMerge><feMergeNode in="coloredBlur" /><feMergeNode in="SourceGraphic" /></feMerge></filter></defs>
@@ -59,6 +67,7 @@ const HostDashboardLayout: React.FC<HostDashboardLayoutProps> = ({ navigate, cur
                  </button>
             </div>
         </aside>
+        </>
     );
 };
 

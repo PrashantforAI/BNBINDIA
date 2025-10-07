@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { Property, Review, SearchFilters } from "../types";
+import { Property, Review, SearchFilters, Booking } from "../types";
 
 // Ensure API_KEY is available, otherwise throw an error.
 if (!process.env.API_KEY) {
@@ -274,5 +274,35 @@ export const moderateMessage = async (text: string): Promise<{ compliant: boolea
         console.error("Error moderating message:", error);
         // Fail safe: if moderation fails, assume it's compliant to not block users unnecessarily.
         return { compliant: true, reason: "" };
+    }
+};
+
+export const suggestPricingStrategy = async (property: Property, bookings: Booking[]): Promise<string> => {
+    const prompt = `You are an expert vacation rental pricing analyst for the Indian market.
+    Analyze the following property and its booking data to provide 3 actionable pricing suggestions.
+    Consider weekends, upcoming holidays in India (like Diwali, Christmas, New Year), and seasonality.
+    Keep suggestions brief and clear. Output should be a single block of text formatted with HTML, with each suggestion in a <li> tag inside a <ul>.
+
+    Property Details:
+    - Type: ${property.type}
+    - Location: ${property.location.city}, ${property.location.state}
+    - Base Price: ₹${property.pricePerNight}/night
+    - Amenities: ${property.amenities.join(', ')}
+    - Max Guests: ${property.maxGuests}
+
+    Existing Bookings:
+    ${bookings.map(b => `- ${b.startDate.toISOString().split('T')[0]} to ${b.endDate.toISOString().split('T')[0]}`).join('\n')}
+
+    Example output: "<ul><li>Increase weekend prices by 20% as demand is higher.</li><li>Consider a 15% price hike for the Christmas and New Year period.</li><li>Offer a 10% discount for weekday stays longer than 3 nights to improve occupancy.</li></ul>"
+    `;
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+        });
+        return response.text;
+    } catch (error) {
+        console.error("Error suggesting pricing strategy:", error);
+        return "<ul><li>Could not generate suggestions at this time.</li></ul>";
     }
 };

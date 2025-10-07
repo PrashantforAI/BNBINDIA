@@ -3,7 +3,6 @@ import { NavigateFunction, Page, Conversation, Property, User, Booking, Message 
 import { useAuth } from '../hooks/useAuth';
 import { dataService } from '../services/dataService';
 import { moderateMessage } from '../services/geminiService';
-import PropertyCard from '../components/PropertyCard';
 
 interface InboxPageProps {
     navigate: NavigateFunction;
@@ -85,8 +84,8 @@ const SharePropertyModal: React.FC<{ isOpen: boolean, onClose: () => void, onSel
     if (!isOpen) return null;
 
     return (
-         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50" onClick={onClose}>
-            <div className="bg-gray-800 rounded-lg p-6 w-full max-w-lg shadow-xl border border-gray-700" onClick={e => e.stopPropagation()}>
+         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 animate-fade-in" onClick={onClose}>
+            <div className="bg-gray-800 rounded-lg p-6 w-full max-w-lg shadow-xl border border-gray-700 animate-scale-in" onClick={e => e.stopPropagation()}>
                 <h3 className="text-xl font-bold mb-4 text-gray-50">Share another property</h3>
                 <div className="space-y-3 max-h-96 overflow-y-auto">
                     {properties.map(p => (
@@ -98,6 +97,7 @@ const SharePropertyModal: React.FC<{ isOpen: boolean, onClose: () => void, onSel
                             </div>
                         </div>
                     ))}
+                     {properties.length === 0 && <p className="text-gray-400 text-center py-4">You have no other properties to share.</p>}
                 </div>
             </div>
         </div>
@@ -119,8 +119,8 @@ const MakeOfferModal: React.FC<{ isOpen: boolean, onClose: () => void, onSubmit:
     if (!isOpen) return null;
 
      return (
-         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50" onClick={onClose}>
-            <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md shadow-xl border border-gray-700" onClick={e => e.stopPropagation()}>
+         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 animate-fade-in" onClick={onClose}>
+            <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md shadow-xl border border-gray-700 animate-scale-in" onClick={e => e.stopPropagation()}>
                 <h3 className="text-xl font-bold mb-4 text-gray-50">Make a Special Offer</h3>
                 <div className="space-y-4">
                      <div>
@@ -141,7 +141,6 @@ const MakeOfferModal: React.FC<{ isOpen: boolean, onClose: () => void, onSubmit:
     )
 }
 
-
 const InboxPage: React.FC<InboxPageProps> = ({ navigate, initialConversationId }) => {
     const { user } = useAuth();
     const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -153,6 +152,9 @@ const InboxPage: React.FC<InboxPageProps> = ({ navigate, initialConversationId }
     const [isSending, setIsSending] = useState(false);
     const [isShareModalOpen, setShareModalOpen] = useState(false);
     const [isOfferModalOpen, setOfferModalOpen] = useState(false);
+    const [mobileView, setMobileView] = useState<'list' | 'chat'>('list');
+    const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
+    const actionMenuRef = useRef<HTMLDivElement>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const fetchConversations = async (keepSelection = false) => {
@@ -181,6 +183,7 @@ const InboxPage: React.FC<InboxPageProps> = ({ navigate, initialConversationId }
         if (initialConversationId && !currentSelectionId) {
             const initialConvo = convos.find(c => c.id === initialConversationId);
             setSelectedConversation(initialConvo || convos[0] || null);
+            if (initialConvo) setMobileView('chat');
         } else if (!currentSelectionId) {
             setSelectedConversation(convos[0] || null);
         }
@@ -196,29 +199,48 @@ const InboxPage: React.FC<InboxPageProps> = ({ navigate, initialConversationId }
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [selectedConversation?.messages]);
 
+    useEffect(() => {
+        if (conversations.length > 0 && !selectedConversation) {
+            setSelectedConversation(conversations[0]);
+        }
+        if (window.innerWidth < 768) {
+            setMobileView(selectedConversation ? 'chat' : 'list');
+        }
+    }, [conversations, selectedConversation]);
+    
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (actionMenuRef.current && !actionMenuRef.current.contains(event.target as Node)) {
+                setIsActionMenuOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const handleSelectConversation = (convo: Conversation) => {
+        setSelectedConversation(convo);
+        setMobileView('chat');
+    };
+
     const handleSendMessage = async (messageData: Omit<Message, 'id' | 'timestamp' | 'senderId'>) => {
         setError(null);
         if (!selectedConversation || !user) return;
-
         setIsSending(true);
 
-        // AI Moderation for text messages
         if (messageData.text) {
             const moderationResult = await moderateMessage(messageData.text);
             if (!moderationResult.compliant) {
                 setError(moderationResult.reason);
                 setIsSending(false);
-                return; // Stop sending the message
+                return;
             }
         }
 
         try {
-             await dataService.sendMessage(selectedConversation.id, {
-                senderId: user.id,
-                ...messageData,
-            });
+             await dataService.sendMessage(selectedConversation.id, { senderId: user.id, ...messageData });
             setNewMessage('');
-            await fetchConversations(true); // pass true to keep selection
+            await fetchConversations(true);
         } catch (err: any) {
             setError(err.message || "Failed to send message.");
         } finally {
@@ -228,20 +250,18 @@ const InboxPage: React.FC<InboxPageProps> = ({ navigate, initialConversationId }
     
     const handleTextSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if(newMessage.trim() && !isSending) {
-            handleSendMessage({ text: newMessage });
-        }
-    }
+        if(newMessage.trim() && !isSending) handleSendMessage({ text: newMessage });
+    };
     
     const handleShareSelect = (propertyId: string) => {
         handleSendMessage({ propertyShareId: propertyId });
         setShareModalOpen(false);
-    }
+    };
     
     const handleOfferSubmit = (price: number, notes: string) => {
         handleSendMessage({ offer: { pricePerNight: price, notes }, offerStatus: 'pending' });
         setOfferModalOpen(false);
-    }
+    };
 
     const renderReservationDetails = () => {
         if (!selectedConversation) return null;
@@ -267,27 +287,29 @@ const InboxPage: React.FC<InboxPageProps> = ({ navigate, initialConversationId }
         )
     };
 
-
     if (loading && conversations.length === 0) return <div className="text-center py-20">Loading messages...</div>;
     if (!user) return null;
     
     const selectedProperty = selectedConversation ? relatedData[selectedConversation.id]?.property : null;
     const isHostForThisConvo = user.isHost && selectedProperty?.hostId === user.id;
 
+    const showList = mobileView === 'list';
+    const showChat = mobileView === 'chat';
+
     return (
-        <div className="container mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold mb-6 text-gray-50">Messages</h1>
-            <div className="flex h-[75vh] border border-gray-700 rounded-lg bg-gray-800 shadow-sm overflow-hidden">
+        <div className="container mx-auto px-0 sm:px-4 py-0 sm:py-8">
+            <h1 className="text-3xl font-bold mb-6 text-gray-50 px-4 sm:px-0">Messages</h1>
+            <div className="flex h-[calc(100vh-160px)] sm:h-[75vh] border-0 sm:border sm:border-gray-700 sm:rounded-lg bg-gray-850 shadow-sm overflow-hidden">
                 {/* Conversation List */}
-                <div className="w-1/3 border-r border-gray-700 overflow-y-auto">
+                <div className={`w-full md:w-1/3 border-r border-gray-700 overflow-y-auto ${showChat && 'hidden md:block'}`}>
                     {conversations.map(convo => {
                         const data = relatedData[convo.id];
                         const lastMessage = convo.messages[convo.messages.length - 1];
                         return (
                             <div 
                                 key={convo.id} 
-                                onClick={() => setSelectedConversation(convo)}
-                                className={`p-4 cursor-pointer hover:bg-gray-700/60 border-l-4 ${selectedConversation?.id === convo.id ? 'bg-gray-700 border-brand' : 'border-transparent'}`}
+                                onClick={() => handleSelectConversation(convo)}
+                                className={`p-4 cursor-pointer hover:bg-gray-800/60 border-l-4 transition-colors ${selectedConversation?.id === convo.id ? 'bg-gray-800 border-brand' : 'border-transparent'}`}
                             >
                                 <div className="flex items-center space-x-3">
                                     <img src={data?.otherUser?.avatarUrl} alt={data?.otherUser?.name} className="w-12 h-12 rounded-full flex-shrink-0" />
@@ -303,10 +325,11 @@ const InboxPage: React.FC<InboxPageProps> = ({ navigate, initialConversationId }
                 </div>
 
                 {/* Message View */}
-                <div className="w-2/3 flex flex-col">
+                <div className={`w-full md:w-2/3 flex flex-col ${showList && 'hidden md:flex'}`}>
                     {selectedConversation ? (
                         <>
-                             <div className="p-4 border-b border-gray-700 flex items-center space-x-4">
+                             <div className="p-4 border-b border-gray-700 flex items-center space-x-4 bg-gray-850">
+                               <button onClick={() => setMobileView('list')} className="md:hidden text-gray-300">&larr;</button>
                                <img src={relatedData[selectedConversation.id]?.otherUser?.avatarUrl} alt="" className="w-10 h-10 rounded-full" />
                                <div>
                                     <p className="font-bold text-gray-50">{relatedData[selectedConversation.id]?.otherUser?.name}</p>
@@ -319,7 +342,7 @@ const InboxPage: React.FC<InboxPageProps> = ({ navigate, initialConversationId }
                                 <div className="space-y-4">
                                 {selectedConversation.messages.map(msg => (
                                     <div key={msg.id} className={`flex items-end gap-2 ${msg.senderId === user.id ? 'justify-end' : 'justify-start'}`}>
-                                        {msg.senderId !== user.id && <img src={relatedData[selectedConversation.id]?.otherUser?.avatarUrl} className="w-8 h-8 rounded-full flex-shrink-0" alt="" />}
+                                        {msg.senderId !== user.id && <img src={relatedData[selectedConversation.id]?.otherUser?.avatarUrl} className="w-8 h-8 rounded-full flex-shrink-0 self-start" alt="" />}
                                         <div className={`max-w-xs md:max-w-md p-3 rounded-2xl ${msg.senderId === user.id ? 'bg-brand text-gray-900 font-medium rounded-br-none' : 'bg-gray-700 text-gray-200 rounded-bl-none'}`}>
                                             {msg.text && <p>{msg.text}</p>}
                                             {msg.propertyShareId && <SharedPropertyCard propertyId={msg.propertyShareId} navigate={navigate} />}
@@ -330,13 +353,26 @@ const InboxPage: React.FC<InboxPageProps> = ({ navigate, initialConversationId }
                                 <div ref={messagesEndRef} />
                                 </div>
                             </div>
-                            <div className="p-4 border-t border-gray-700 bg-gray-800">
+                            <div className="p-4 border-t border-gray-700 bg-gray-850">
                                  {error && <p className="text-red-400 text-sm mb-2 text-center">{error}</p>}
                                 <form onSubmit={handleTextSubmit} className="flex items-center space-x-2">
                                      {isHostForThisConvo && (
-                                        <div className="flex space-x-1">
-                                            <button type="button" onClick={() => setShareModalOpen(true)} disabled={isSending} className="p-3 text-gray-300 bg-gray-700 rounded-full hover:bg-gray-600 disabled:opacity-50"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" /></svg></button>
-                                            <button type="button" onClick={() => setOfferModalOpen(true)} disabled={isSending} className="p-3 text-gray-300 bg-gray-700 rounded-full hover:bg-gray-600 disabled:opacity-50"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" /></svg></button>
+                                        <div ref={actionMenuRef}>
+                                            <div className="relative sm:hidden">
+                                                <button type="button" onClick={() => setIsActionMenuOpen(!isActionMenuOpen)} className="p-3 text-gray-300 bg-gray-700 rounded-full hover:bg-gray-600">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" /></svg>
+                                                </button>
+                                                {isActionMenuOpen && (
+                                                    <div className="absolute bottom-14 left-0 w-48 bg-gray-600 rounded-lg shadow-lg z-10 p-2 border border-gray-500">
+                                                        <button type="button" onClick={() => { setShareModalOpen(true); setIsActionMenuOpen(false); }} className="w-full text-left p-2 rounded hover:bg-gray-500 text-gray-50">Share Property</button>
+                                                        <button type="button" onClick={() => { setOfferModalOpen(true); setIsActionMenuOpen(false); }} className="w-full text-left p-2 rounded hover:bg-gray-500 text-gray-50">Make Offer</button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="hidden sm:flex space-x-1">
+                                                <button type="button" onClick={() => setShareModalOpen(true)} disabled={isSending} title="Share another property" className="p-3 text-gray-300 bg-gray-700 rounded-full hover:bg-gray-600 disabled:opacity-50 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" /></svg></button>
+                                                <button type="button" onClick={() => setOfferModalOpen(true)} disabled={isSending} title="Make a special offer" className="p-3 text-gray-300 bg-gray-700 rounded-full hover:bg-gray-600 disabled:opacity-50 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" /></svg></button>
+                                            </div>
                                         </div>
                                     )}
                                     <input 
@@ -356,13 +392,13 @@ const InboxPage: React.FC<InboxPageProps> = ({ navigate, initialConversationId }
                             </div>
                         </>
                     ) : (
-                        <div className="flex items-center justify-center h-full text-gray-400">
+                        <div className="hidden md:flex items-center justify-center h-full text-gray-400">
                             <p>Select a conversation to start messaging</p>
                         </div>
                     )}
                 </div>
                  {/* Reservation Details */}
-                <div className="w-1/3 border-l border-gray-700 overflow-y-auto bg-gray-800/50">
+                <div className="w-1/3 border-l border-gray-700 overflow-y-auto bg-gray-800 hidden lg:block">
                    {renderReservationDetails()}
                 </div>
             </div>

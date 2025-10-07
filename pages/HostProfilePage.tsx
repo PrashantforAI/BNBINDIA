@@ -3,6 +3,7 @@ import { NavigateFunction, Page, Property, User } from '../types';
 import { dataService } from '../services/dataService';
 import PropertyCard from '../components/PropertyCard';
 import { useAuth } from '../hooks/useAuth';
+import BackButton from '../components/BackButton';
 
 interface HostProfilePageProps {
     navigate: NavigateFunction;
@@ -39,6 +40,7 @@ const HostProfilePage: React.FC<HostProfilePageProps> = ({ navigate, hostId }) =
 
     return (
         <div className="container mx-auto px-4 py-12">
+            <BackButton className="mb-8" />
             <div className="max-w-4xl mx-auto">
                 <div className="flex flex-col md:flex-row items-center md:items-start md:space-x-8 mb-12">
                     <img src={host.avatarUrl} alt={host.name} className="w-32 h-32 rounded-full mb-4 md:mb-0 border-4 border-gray-700"/>

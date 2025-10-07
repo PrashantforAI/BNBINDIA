@@ -64,7 +64,8 @@ const HostReservationsPage: React.FC<HostReservationsPageProps> = ({ navigate })
                 </nav>
             </div>
             
-            <div className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
+            {/* Desktop Table */}
+            <div className="hidden md:block bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-700">
                         <thead className="bg-gray-800">
@@ -91,6 +92,26 @@ const HostReservationsPage: React.FC<HostReservationsPageProps> = ({ navigate })
                         </tbody>
                     </table>
                 </div>
+                 {filteredReservations.length === 0 && <p className="text-center py-12 text-gray-400">No {activeTab} reservations found.</p>}
+            </div>
+
+             {/* Mobile Cards */}
+            <div className="md:hidden space-y-4">
+                 {filteredReservations.map((res) => (
+                    <div key={res.id} className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                        <div className="flex justify-between items-start">
+                             <div>
+                                <p className="font-bold text-lg text-gray-50">{guests[res.guestId]?.name || 'N/A'}</p>
+                                <p className="text-sm text-gray-400 truncate max-w-[200px]">{properties[res.propertyId]?.title || 'N/A'}</p>
+                            </div>
+                            <p className="font-semibold text-gray-200">₹{(res.totalPrice * 0.95).toLocaleString('en-IN')}</p>
+                        </div>
+                        <div className="mt-3 pt-3 border-t border-gray-700">
+                             <p className="text-sm text-gray-300">{new Date(res.startDate).toLocaleDateString()} - {new Date(res.endDate).toLocaleDateString()}</p>
+                             <button onClick={() => navigate(Page.INBOX, { bookingId: res.id })} className="mt-3 w-full text-center bg-gray-700 text-brand font-bold py-2 rounded-lg hover:bg-gray-600 transition">Message Guest</button>
+                        </div>
+                    </div>
+                ))}
                  {filteredReservations.length === 0 && <p className="text-center py-12 text-gray-400">No {activeTab} reservations found.</p>}
             </div>
         </div>

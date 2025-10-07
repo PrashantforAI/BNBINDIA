@@ -3,6 +3,7 @@ import { NavigateFunction, Page, Property, Review, User } from '../types';
 import { dataService } from '../services/dataService';
 import { useAuth } from '../hooks/useAuth';
 import { generateDescription, summarizeReviews } from '../services/geminiService';
+import BackButton from '../components/BackButton';
 
 interface PropertyDetailsPageProps {
     navigate: NavigateFunction;
@@ -86,14 +87,14 @@ const BookingWidget: React.FC<{ property: Property, navigate: NavigateFunction, 
     const dateInputStyle = { colorScheme: 'dark' };
 
     return (
-        <div className="sticky top-28 p-6 border border-gray-700 rounded-lg bg-gray-800">
+        <div className="sticky top-28 p-6 border border-gray-700 rounded-xl bg-gray-800/50 backdrop-blur-sm shadow-2xl shadow-black/20">
             {offerPrice && (
                 <div className="mb-4 p-3 bg-green-900/50 text-green-300 rounded-lg text-center">
                     <p className="font-bold">Special Offer Applied!</p>
                     <p className="text-sm">Your host has offered you a special price.</p>
                 </div>
             )}
-            <p className="text-2xl mb-4">
+            <p className="text-3xl mb-4">
                 <span className="font-bold">₹{pricePerNight.toLocaleString('en-IN')}</span>
                 <span className="text-gray-400 font-normal text-base"> night</span>
                  {offerPrice && <span className="text-sm ml-2 line-through text-gray-500">₹{property.pricePerNight.toLocaleString('en-IN')}</span>}
@@ -113,7 +114,7 @@ const BookingWidget: React.FC<{ property: Property, navigate: NavigateFunction, 
                 <input type="number" value={guests} onChange={e => setGuests(Number(e.target.value))} min="1" max={property.maxGuests} className="w-full border-none p-0 focus:ring-0 text-sm bg-transparent" />
             </div>
 
-            <button onClick={handleBooking} disabled={isHostOwner} className="w-full bg-brand text-gray-900 py-3 rounded-lg font-bold hover:bg-brand-dark transition disabled:bg-gray-600 disabled:text-gray-400 disabled:cursor-not-allowed">
+            <button onClick={handleBooking} disabled={isHostOwner} className="w-full bg-brand text-gray-900 py-3 rounded-lg font-bold text-lg hover:bg-brand-dark transition disabled:bg-gray-600 disabled:text-gray-400 disabled:cursor-not-allowed">
                 {isHostOwner ? 'This is your property' : 'Book Now'}
             </button>
             
@@ -131,7 +132,7 @@ const BookingWidget: React.FC<{ property: Property, navigate: NavigateFunction, 
                         <span>Taxes</span>
                         <span>₹{taxes.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
                     </div>
-                    <div className="border-t border-gray-700 pt-2 mt-2 flex justify-between font-bold text-gray-50">
+                    <div className="border-t border-gray-700 pt-2 mt-2 flex justify-between font-bold text-gray-50 text-lg">
                         <span>Total</span>
                         <span>₹{totalPrice.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
                     </div>
@@ -179,11 +180,11 @@ const ReviewSection: React.FC<{ propertyId: string }> = ({ propertyId }) => {
             </div>
 
             <div className="mb-8">
-                <button onClick={handleSummarize} disabled={isSummarizing} className="bg-accent text-gray-900 px-4 py-2 rounded-lg hover:bg-accent-dark transition disabled:bg-opacity-60 font-semibold">
+                <button onClick={handleSummarize} disabled={isSummarizing} className="bg-accent text-gray-900 px-4 py-2 rounded-lg hover:bg-accent-dark transition disabled:bg-opacity-60 font-bold">
                     {isSummarizing ? 'Summarizing...' : '✨ Summarize Reviews with AI'}
                 </button>
                 {summary && (
-                    <div className="mt-4 p-4 bg-gray-800 border border-gray-700 rounded-lg review-summary" dangerouslySetInnerHTML={{ __html: summary.replace(/<p>/g, '<p class="text-gray-300">').replace(/<h2>/g, '<h2 class="text-gray-200 font-semibold text-lg mt-2 mb-1">').replace(/<ul>/g, '<ul class="list-disc list-inside text-gray-300 space-y-1">') }}></div>
+                    <div className="mt-4 p-4 bg-gray-800 border border-gray-700 rounded-lg review-summary" dangerouslySetInnerHTML={{ __html: summary.replace(/<p>/g, '<p class="text-gray-300 mb-3">').replace(/<h2>/g, '<h2 class="text-gray-100 font-bold text-lg mt-3 mb-2">').replace(/<ul>/g, '<ul class="list-disc list-inside text-gray-300 space-y-1">') }}></div>
                 )}
             </div>
 
@@ -222,11 +223,11 @@ const GalleryModal: React.FC<{ images: string[], startIndex: number, onClose: ()
     }, []);
 
     return (
-        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center" onClick={onClose}>
-            <button onClick={onClose} className="absolute top-4 right-4 text-white text-3xl">&times;</button>
-            <button onClick={e => { e.stopPropagation(); prevImage(); }} className="absolute left-4 text-white text-4xl">&#8249;</button>
-            <button onClick={e => { e.stopPropagation(); nextImage(); }} className="absolute right-4 text-white text-4xl">&#8250;</button>
-            <div className="relative w-full h-full max-w-4xl max-h-[80vh]">
+        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center animate-fade-in" onClick={onClose}>
+            <button onClick={onClose} className="absolute top-4 right-4 text-white text-3xl hover:opacity-80 transition">&times;</button>
+            <button onClick={e => { e.stopPropagation(); prevImage(); }} className="absolute left-4 md:left-8 text-white text-4xl hover:opacity-80 transition">&#8249;</button>
+            <button onClick={e => { e.stopPropagation(); nextImage(); }} className="absolute right-4 md:right-8 text-white text-4xl hover:opacity-80 transition">&#8250;</button>
+            <div className="relative w-full h-full max-w-5xl max-h-[90vh] p-4">
                 <img src={images[currentIndex]} alt="Gallery view" className="w-full h-full object-contain" onClick={e => e.stopPropagation()} />
             </div>
         </div>
@@ -294,32 +295,36 @@ const PropertyDetailsPage: React.FC<PropertyDetailsPageProps> = ({ navigate, pro
     const isOwnListing = user?.id === host.id;
 
     return (
-        <div className="container mx-auto px-4 py-12">
+        <div className="container mx-auto px-4 py-8 md:py-12">
+            <BackButton className="mb-4" />
             <div className="flex justify-between items-start mb-4">
                 <div>
-                    <h1 className="text-3xl font-bold mb-1">{property.title}</h1>
+                    <h1 className="text-3xl md:text-4xl font-bold mb-1">{property.title}</h1>
                     <div className="flex items-center space-x-2 text-sm text-gray-400">
                         <StarIcon className="w-4 h-4 text-yellow-400" />
                         <span>{property.rating} ({property.reviewCount} reviews)</span>
                         <span>·</span>
-                        <span className="underline cursor-pointer">{property.location.city}, {property.location.state}, {property.location.country}</span>
+                        <span className="underline cursor-pointer hover:text-gray-200">{property.location.city}, {property.location.state}</span>
                     </div>
                 </div>
                  <button onClick={handleWishlistClick} className="flex items-center space-x-2 px-4 py-2 border border-gray-700 rounded-lg hover:bg-gray-800 transition">
-                    <HeartIcon filled={isWishlisted} className={`w-6 h-6 ${isWishlisted ? 'text-red-500' : 'text-gray-200'}`} />
+                    <HeartIcon filled={isWishlisted} className={`w-6 h-6 transition-colors ${isWishlisted ? 'text-red-500' : 'text-gray-200'}`} />
                     <span className="font-semibold hidden sm:block">{isWishlisted ? 'Saved' : 'Save'}</span>
                 </button>
             </div>
             
-            <div className="grid grid-cols-4 grid-rows-2 gap-2 h-[500px] mb-12 overflow-hidden rounded-xl cursor-pointer" onClick={() => openGallery(0)}>
-                <div className="col-span-2 row-span-2">
-                    <img src={property.images[0]} alt="Main" className="w-full h-full object-cover hover:opacity-90 transition" />
+            <div className="relative grid md:grid-cols-4 md:grid-rows-2 gap-2 h-[300px] md:h-[500px] mb-8 md:mb-12 overflow-hidden rounded-xl cursor-pointer group" onClick={() => openGallery(0)}>
+                <div className="md:col-span-2 md:row-span-2 overflow-hidden h-full">
+                    <img src={property.images[0]} alt="Main" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                 </div>
                 {property.images.slice(1, 5).map((img, i) => (
-                    <div key={i} className={i > 1 ? 'hidden sm:block' : ''}>
-                         <img onClick={(e) => {e.stopPropagation(); openGallery(i+1)}} src={img} alt={`View ${i+1}`} className="w-full h-full object-cover hover:opacity-90 transition" />
+                    <div key={i} className="hidden md:block overflow-hidden">
+                         <img onClick={(e) => {e.stopPropagation(); openGallery(i+1)}} src={img} alt={`View ${i+1}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                     </div>
                 ))}
+                <div className="absolute bottom-4 right-4">
+                    <button onClick={(e) => { e.stopPropagation(); openGallery(0); }} className="bg-gray-900/80 text-white font-semibold px-4 py-2 rounded-lg border border-gray-50/50 backdrop-blur-sm hover:bg-gray-800 transition">Show all photos</button>
+                </div>
             </div>
 
 
@@ -331,13 +336,13 @@ const PropertyDetailsPage: React.FC<PropertyDetailsPageProps> = ({ navigate, pro
                                 className="cursor-pointer group"
                                 onClick={() => navigate(Page.HOST_PROFILE, { hostId: host.id })}
                              >
-                                <h2 className="text-2xl font-semibold group-hover:underline">Entire {property.type} hosted by {host.name}</h2>
+                                <h2 className="text-2xl font-semibold group-hover:text-brand transition-colors">Entire {property.type} hosted by {host.name}</h2>
                                 <p className="text-gray-400">{property.maxGuests} guests · {property.bedrooms} bedrooms · {property.bathrooms} bathrooms</p>
                             </div>
                             <img 
                                 src={host.avatarUrl} 
                                 alt={host.name} 
-                                className="w-14 h-14 rounded-full cursor-pointer" 
+                                className="w-14 h-14 rounded-full cursor-pointer flex-shrink-0" 
                                 onClick={() => navigate(Page.HOST_PROFILE, { hostId: host.id })}
                             />
                         </div>

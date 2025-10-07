@@ -6,6 +6,7 @@ import LoginModal from './LoginModal';
 interface HeaderProps {
     navigate: NavigateFunction;
     currentPage: Page;
+    onMenuClick?: () => void; // For mobile host sidebar
 }
 
 const Logo: React.FC<{ navigate: NavigateFunction }> = ({ navigate }) => (
@@ -22,12 +23,12 @@ const Logo: React.FC<{ navigate: NavigateFunction }> = ({ navigate }) => (
             </defs>
             <path 
                 d="M83.75 45.42c0-14.8-11.95-26.75-26.75-26.75S30.25 30.62 30.25 45.42c0 10.9 6.55 20.25 15.75 24.5v11.33c0 1.25.9 2.25 2.1 2.25h1.9c1.2 0 2.1-.9 2.1-2.25V69.92c9.2-4.25 15.75-13.6 15.75-24.5zm-26.75 9.5c-5.25 0-9.5-4.25-9.5-9.5s4.25-9.5 9.5-9.5 9.5 4.25 9.5 9.5-4.25 9.5-9.5 9.5z" 
-                fill="#00f6ff" 
+                fill="#A6FF00" 
                 filter="url(#logo-glow)"
             />
             <path 
                 d="M91.3,39.6,52.8,4.1c-1.6-1.5-4-1.5-5.6,0L8.7,39.6C7.5,40.7,7,42.2,7,43.8V89c0,4.4,3.6,8,8,8H85c4.4,0,8-3.6,8-8V43.8C93,42.2,92.5,40.7,91.3,39.6z M50,28c9.9,0,18,8.1,18,18s-8.1,18-18,18s-18-8.1-18-18S40.1,28,50,28z M85,89H15V43.8L50,11.5l35,32.3V89z" 
-                fill="#00c7d4" 
+                fill="#00BFA6" 
             />
         </svg>
         <span className="text-2xl font-bold text-gray-50 hidden md:block tracking-tight">bnb India</span>
@@ -62,63 +63,81 @@ const UserMenu: React.FC<{ navigate: NavigateFunction }> = ({ navigate }) => {
         setIsOpen(false);
     }
     
+    const menuItems = [
+        { label: 'My Trips', page: Page.DASHBOARD, icon: <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.428A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>, condition: true },
+        { label: 'Inbox', page: Page.INBOX, icon: <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" /></svg>, condition: true },
+        { label: 'My Profile', page: Page.HOST_PROFILE, params: { hostId: user?.id }, icon: <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" /></svg>, condition: user?.isHost },
+        { label: 'Go to Hosting', page: Page.HOST_TODAY, icon: <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" /></svg>, condition: user?.isHost }
+    ];
+
     return (
         <div className="relative" ref={menuRef}>
-            <button onClick={() => setIsOpen(!isOpen)} className="flex items-center space-x-2 p-2 rounded-full border border-gray-700 hover:bg-gray-800 transition">
+            <button onClick={() => setIsOpen(!isOpen)} className="flex items-center space-x-2 p-1.5 rounded-full border border-gray-700 hover:bg-gray-800/80 transition">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-gray-400">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                 </svg>
                 <img src={user?.avatarUrl || 'https://i.pravatar.cc/150?u=guest'} alt="User" className="w-8 h-8 rounded-full" />
             </button>
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-gray-800 rounded-lg shadow-lg z-20 py-2 border border-gray-700">
-                    <a onClick={() => handleNavigate(Page.DASHBOARD)} className="block px-4 py-2 text-gray-200 hover:bg-gray-700 cursor-pointer">My Trips</a>
-                    <a onClick={() => handleNavigate(Page.INBOX)} className="block px-4 py-2 text-gray-200 hover:bg-gray-700 cursor-pointer">Inbox</a>
-                    {user?.isHost && <a onClick={() => handleNavigate(Page.HOST_PROFILE, { hostId: user.id })} className="block px-4 py-2 text-gray-200 hover:bg-gray-700 cursor-pointer">My Profile</a>}
-                    {user?.isHost && <a onClick={() => handleNavigate(Page.HOST_TODAY)} className="block px-4 py-2 text-gray-200 hover:bg-gray-700 cursor-pointer font-semibold">Go to Hosting</a>}
+                <div className="absolute right-0 mt-2 w-64 bg-gray-800 rounded-lg shadow-lg z-20 py-2 border border-gray-700 animate-fade-in">
+                    <div className="px-4 py-3 border-b border-gray-700">
+                        <p className="text-sm font-semibold text-gray-50">{user?.name}</p>
+                        <p className="text-xs text-gray-400">{user?.email}</p>
+                    </div>
+                    <div className="py-2">
+                        {menuItems.map(item => item.condition && (
+                            <a key={item.label} onClick={() => handleNavigate(item.page, item.params)} className="flex items-center space-x-3 px-4 py-2 text-gray-200 hover:bg-gray-700 cursor-pointer">
+                                {item.icon}
+                                <span>{item.label}</span>
+                            </a>
+                        ))}
+                    </div>
                     <div className="border-t my-2 border-gray-700"></div>
-                    <a onClick={() => { logout(); setIsOpen(false); navigate(Page.HOME) }} className="block px-4 py-2 text-gray-200 hover:bg-gray-700 cursor-pointer">Log out</a>
+                    <a onClick={() => { logout(); setIsOpen(false); navigate(Page.HOME) }} className="flex items-center space-x-3 px-4 py-2 text-gray-200 hover:bg-gray-700 cursor-pointer">
+                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd" /></svg>
+                         <span>Log out</span>
+                    </a>
                 </div>
             )}
         </div>
     );
 };
 
-const Header: React.FC<HeaderProps> = ({ navigate, currentPage }) => {
+const Header: React.FC<HeaderProps> = ({ navigate, currentPage, onMenuClick }) => {
     const { user } = useAuth();
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
     
     const isHostView = user?.isHost && HOST_PAGES.includes(currentPage);
 
-    const renderHostNav = () => (
-        <nav className="flex items-center space-x-6 text-sm font-medium text-gray-200">
-            <button onClick={() => navigate(Page.HOME)} className="border border-gray-700 px-4 py-2 rounded-full hover:bg-gray-800 transition">Switch to travelling</button>
-        </nav>
-    );
-
-    const renderGuestNav = () => (
-         <nav className="hidden sm:flex items-center space-x-6 text-gray-200 font-medium">
-            <a onClick={() => navigate(Page.HOME)} className="hover:text-brand cursor-pointer">Stays</a>
-            <a className="hover:text-brand cursor-pointer">Experiences</a>
-        </nav>
-    );
-
-
     return (
         <>
-            <header className="sticky top-0 bg-gray-900/80 backdrop-blur-md z-10 p-4 border-b border-gray-700">
+            <header className="sticky top-0 bg-gray-900/70 backdrop-blur-lg z-10 p-4 border-b border-gray-700/80">
                 <div className="container mx-auto flex justify-between items-center">
-                    <Logo navigate={navigate} />
+                    <div className="flex items-center space-x-4">
+                        {isHostView && (
+                             <button onClick={onMenuClick} className="lg:hidden text-gray-200">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                                </svg>
+                            </button>
+                        )}
+                        <Logo navigate={navigate} />
+                    </div>
 
-                    {isHostView ? renderHostNav() : renderGuestNav()}
+                    {!isHostView && (
+                        <nav className="hidden sm:flex items-center space-x-8 text-gray-200 font-medium">
+                            <a onClick={() => navigate(Page.HOME)} className="hover:text-brand transition-colors cursor-pointer">Stays</a>
+                            <a className="hover:text-brand transition-colors cursor-pointer">Experiences</a>
+                        </nav>
+                    )}
                     
                     <div className="flex items-center space-x-4 flex-shrink-0">
                         {user ? (
                             <UserMenu navigate={navigate} />
                         ) : (
                              <nav className="flex items-center space-x-4">
-                                <a className="font-medium text-gray-200 hover:text-brand hidden md:block cursor-pointer">Become a Host</a>
-                                <button onClick={() => setIsLoginModalOpen(true)} className="bg-brand text-gray-900 px-4 py-2 rounded-full font-semibold hover:bg-brand-dark transition">
+                                <a className="font-medium text-gray-200 hover:text-brand transition-colors hidden md:block cursor-pointer">Become a Host</a>
+                                <button onClick={() => setIsLoginModalOpen(true)} className="bg-brand text-gray-900 px-5 py-2.5 rounded-full font-bold hover:bg-brand-dark transition-colors">
                                     Log in
                                 </button>
                             </nav>

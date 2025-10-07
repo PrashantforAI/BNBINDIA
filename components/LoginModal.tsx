@@ -17,11 +17,11 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50" onClick={onClose}>
-            <div className="bg-gray-800 rounded-lg p-8 w-full max-w-md shadow-xl border border-gray-700" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 animate-fade-in" onClick={onClose}>
+            <div className="bg-gray-800 rounded-lg p-8 w-full max-w-md shadow-2xl border border-gray-700 animate-scale-in" onClick={e => e.stopPropagation()}>
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-2xl font-bold text-gray-50">Log in</h2>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-50">
+                    <button onClick={onClose} className="text-gray-400 hover:text-gray-50 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
                         </svg>
@@ -36,7 +36,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                             <div 
                                 key={user.id} 
                                 onClick={() => handleLogin(user.id)}
-                                className="flex items-center space-x-4 p-3 border border-gray-700 rounded-lg hover:bg-gray-700 cursor-pointer transition"
+                                className="flex items-center space-x-4 p-3 border border-gray-700 rounded-lg hover:bg-gray-700/70 hover:border-gray-600 cursor-pointer transition-all"
                             >
                                 <img src={user.avatarUrl} alt={user.name} className="w-12 h-12 rounded-full"/>
                                 <div>

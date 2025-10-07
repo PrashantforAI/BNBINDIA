@@ -14,6 +14,10 @@ let properties: Property[] = [
         { date: '2024-12-24', price: 18000 },
         { date: '2024-12-25', price: 20000 },
         { date: '2024-12-31', price: 25000 },
+      ],
+      events: [
+        { date: '2024-11-10', type: 'maintenance', notes: 'Pool cleaning' },
+        { date: '2024-11-11', type: 'maintenance', notes: 'Pool cleaning' },
       ]
     },
     { id: 'prop2', title: 'Cozy Mountain View Cottage', description: 'A charming cottage nestled in the hills of Lonavala, offering breathtaking views and a tranquil escape. Perfect for couples and small families looking for a peaceful getaway.', location: { city: 'Lonavala', state: 'Maharashtra', country: 'India', lat: 18.76, lng: 73.40 }, pricePerNight: 6500, hostId: 'user3', images: ['https://picsum.photos/seed/prop2/800/600', 'https://picsum.photos/seed/prop2a/800/600'], amenities: ['Wifi', 'Kitchen', 'Heating', 'Garden'], bedrooms: 2, bathrooms: 2, maxGuests: 4, rating: 4.9, reviewCount: 62, type: 'Cottage', status: 'listed' },
@@ -103,7 +107,7 @@ export const dataService = {
     },
     getPropertiesByHostId: (hostId: string): Promise<Property[]> => {
         return new Promise(resolve => {
-            const hostProperties = properties.filter(p => p.hostId === hostId && p.status === 'listed');
+            const hostProperties = properties.filter(p => p.hostId === hostId);
             setTimeout(() => resolve(hostProperties), 200);
         });
     },
@@ -138,6 +142,16 @@ export const dataService = {
     getBookingsByPropertyId: (propertyId: string): Promise<Booking[]> => {
         return new Promise(resolve => {
             setTimeout(() => resolve(bookings.filter(b => b.propertyId === propertyId)), 200);
+        });
+    },
+     getBookingByDate: (propertyId: string, date: string): Promise<Booking | undefined> => {
+        return new Promise(resolve => {
+            const booking = bookings.find(b => {
+                if (b.propertyId !== propertyId) return false;
+                const checkDate = new Date(date);
+                return checkDate >= new Date(b.startDate.toDateString()) && checkDate <= new Date(b.endDate.toDateString());
+            });
+            setTimeout(() => resolve(booking), 50);
         });
     },
     getBookingById: (bookingId: string): Promise<Booking | undefined> => {

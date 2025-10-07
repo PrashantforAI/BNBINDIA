@@ -11,16 +11,10 @@ interface SearchResultsPageProps {
 const ALL_PROPERTY_TYPES = ['House', 'Apartment', 'Villa', 'Cottage'];
 const COMMON_AMENITIES = ['Pool', 'Wifi', 'Air Conditioning', 'Kitchen', 'Parking', 'Garden'];
 
-const FilterBar: React.FC<{ filters: SearchFilters, onFilterChange: (newFilters: SearchFilters) => void }> = ({ filters, onFilterChange }) => {
+const FilterModal: React.FC<{ isOpen: boolean, onClose: () => void, filters: SearchFilters, onFilterChange: (newFilters: SearchFilters) => void, onApply: () => void }> = ({ isOpen, onClose, filters, onFilterChange, onApply }) => {
+    if (!isOpen) return null;
+
     const [priceMax, setPriceMax] = useState(filters.priceMax || 50000);
-
-    const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setPriceMax(Number(e.target.value));
-    };
-
-    const applyPriceFilter = () => {
-        onFilterChange({ ...filters, priceMax });
-    };
 
     const handleAmenityChange = (amenity: string) => {
         const currentAmenities = filters.amenities || [];
@@ -37,20 +31,30 @@ const FilterBar: React.FC<{ filters: SearchFilters, onFilterChange: (newFilters:
             : [...currentTypes, type];
         onFilterChange({ ...filters, propertyTypes: newTypes });
     };
-
+    
+    const handleApplyAndClose = () => {
+        onFilterChange({ ...filters, priceMax });
+        onApply();
+        onClose();
+    };
 
     return (
-        <div className="bg-gray-800/80 backdrop-blur-sm p-4 rounded-lg mb-8 sticky top-24 z-5 border border-gray-700">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
+        <div className="fixed inset-0 bg-black/70 z-50 flex flex-col animate-fade-in">
+            <header className="p-4 flex justify-between items-center border-b border-gray-700 bg-gray-800">
+                <button onClick={onClose} className="text-2xl">&times;</button>
+                <h2 className="font-bold">Filters</h2>
+                <button onClick={() => onFilterChange({})} className="text-sm">Clear all</button>
+            </header>
+            <div className="flex-grow overflow-y-auto p-6 space-y-8 bg-gray-900">
                 <div>
-                    <label className="block text-sm font-medium text-gray-200">Price up to</label>
-                    <input type="range" min="1000" max="50000" step="1000" value={priceMax} onChange={handlePriceChange} onMouseUp={applyPriceFilter} onTouchEnd={applyPriceFilter} className="w-full accent-brand" />
-                    <span className="text-sm">₹{priceMax.toLocaleString('en-IN')}</span>
+                    <label className="block text-lg font-medium text-gray-200">Price range</label>
+                    <p className="text-gray-400">Up to ₹{priceMax.toLocaleString('en-IN')}</p>
+                    <input type="range" min="1000" max="50000" step="1000" value={priceMax} onChange={(e) => setPriceMax(Number(e.target.value))} className="w-full accent-brand mt-2" />
                 </div>
                  <div>
-                    <label className="block text-sm font-medium text-gray-200">Bedrooms</label>
+                    <label className="block text-lg font-medium text-gray-200">Bedrooms</label>
                     <select 
-                        className="mt-1 block w-full pl-3 pr-10 py-2 text-base bg-gray-700 border-gray-600 focus:outline-none focus:ring-brand focus:border-brand sm:text-sm rounded-md"
+                        className="mt-2 block w-full pl-3 pr-10 py-2 text-base bg-gray-700 border-gray-600 focus:outline-none focus:ring-brand focus:border-brand sm:text-sm rounded-md"
                         value={filters.bedrooms || ''}
                         onChange={(e) => onFilterChange({ ...filters, bedrooms: e.target.value ? Number(e.target.value) : undefined })}
                     >
@@ -62,37 +66,41 @@ const FilterBar: React.FC<{ filters: SearchFilters, onFilterChange: (newFilters:
                     </select>
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-200 mb-2">Property Type</label>
-                    <div className="space-y-2">
+                    <label className="block text-lg font-medium text-gray-200 mb-3">Property Type</label>
+                    <div className="space-y-3">
                         {ALL_PROPERTY_TYPES.map(type => (
                             <label key={type} className="flex items-center">
-                                <input type="checkbox" className="h-4 w-4 text-brand bg-gray-700 border-gray-600 rounded focus:ring-brand" checked={filters.propertyTypes?.includes(type)} onChange={() => handleTypeChange(type)} />
-                                <span className="ml-2 text-sm text-gray-200">{type}</span>
+                                <input type="checkbox" className="h-5 w-5 text-brand bg-gray-700 border-gray-600 rounded focus:ring-brand" checked={filters.propertyTypes?.includes(type)} onChange={() => handleTypeChange(type)} />
+                                <span className="ml-3 text-gray-200">{type}</span>
                             </label>
                         ))}
                     </div>
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-200 mb-2">Amenities</label>
-                    <div className="space-y-2">
+                    <label className="block text-lg font-medium text-gray-200 mb-3">Amenities</label>
+                    <div className="space-y-3">
                         {COMMON_AMENITIES.map(amenity => (
                             <label key={amenity} className="flex items-center">
-                                <input type="checkbox" className="h-4 w-4 text-brand bg-gray-700 border-gray-600 rounded focus:ring-brand" checked={filters.amenities?.includes(amenity.toLowerCase())} onChange={() => handleAmenityChange(amenity)} />
-                                <span className="ml-2 text-sm text-gray-200">{amenity}</span>
+                                <input type="checkbox" className="h-5 w-5 text-brand bg-gray-700 border-gray-600 rounded focus:ring-brand" checked={filters.amenities?.includes(amenity.toLowerCase())} onChange={() => handleAmenityChange(amenity)} />
+                                <span className="ml-3 text-gray-200">{amenity}</span>
                             </label>
                         ))}
                     </div>
                 </div>
             </div>
+            <footer className="p-4 bg-gray-800 border-t border-gray-700">
+                <button onClick={handleApplyAndClose} className="w-full bg-brand text-gray-900 font-bold py-3 rounded-lg">Show Stays</button>
+            </footer>
         </div>
-    );
-};
+    )
+}
 
 
 const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ navigate, initialFilters }) => {
     const [properties, setProperties] = useState<Property[]>([]);
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState<SearchFilters>(initialFilters || {});
+    const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
 
     const fetchProperties = useCallback(async (currentFilters: SearchFilters) => {
         setLoading(true);
@@ -108,15 +116,27 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ navigate, initial
     const handleFilterChange = (newFilters: SearchFilters) => {
         setFilters(prevFilters => ({...prevFilters, ...newFilters}));
     };
+    
+    const handleApplyFilters = () => {
+        fetchProperties(filters);
+    }
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <p className="text-sm text-gray-400 mb-2">{properties.length > 0 ? `${properties.length} stays found` : 'Searching...'}</p>
-            <h1 className="text-3xl font-bold mb-4 text-gray-50">
-                Stays {filters.location ? `in "${filters.location}"` : "across India"}
-            </h1>
+            <div className="flex justify-between items-center mb-4">
+                <div>
+                    <p className="text-sm text-gray-400">{properties.length > 0 ? `${properties.length} stays found` : 'Searching...'}</p>
+                    <h1 className="text-2xl md:text-3xl font-bold text-gray-50">
+                        Stays {filters.location ? `in "${filters.location}"` : "across India"}
+                    </h1>
+                </div>
+                <button onClick={() => setIsFilterModalOpen(true)} className="md:hidden bg-gray-700 text-gray-50 font-bold py-2 px-4 rounded-lg flex items-center space-x-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a1 1 0 00-2 0v7.268a2 2 0 000 3.464V16a1 1 0 102 0v-1.268a2 2 0 000-3.464V4zM11 4a1 1 0 10-2 0v1.268a2 2 0 000 3.464V16a1 1 0 102 0V8.732a2 2 0 000-3.464V4zM16 3a1 1 0 011 1v7.268a2 2 0 010 3.464V16a1 1 0 11-2 0v-1.268a2 2 0 010-3.464V4a1 1 0 011-1z" /></svg>
+                    <span>Filters</span>
+                </button>
+            </div>
 
-            <FilterBar filters={filters} onFilterChange={handleFilterChange} />
+            <FilterModal isOpen={isFilterModalOpen} onClose={() => setIsFilterModalOpen(false)} filters={filters} onFilterChange={setFilters} onApply={handleApplyFilters} />
 
             {loading ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">

@@ -29,11 +29,11 @@ const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
     return (
         <div>
             <div className="relative h-[500px] bg-cover bg-center bg-gray-800">
-                <img src="https://picsum.photos/seed/hero/1600/800" alt="Serene destination" className="absolute inset-0 w-full h-full object-cover opacity-30" />
-                <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent"></div>
+                <img src="https://picsum.photos/seed/hero/1600/800" alt="Serene destination" className="absolute inset-0 w-full h-full object-cover opacity-40" />
+                <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-transparent"></div>
                 <div className="relative container mx-auto px-4 h-full flex flex-col justify-center items-center text-gray-50 text-center">
-                    <h1 className="text-5xl font-bold mb-4 drop-shadow-md">Find your next getaway</h1>
-                    <p className="text-xl mb-8 drop-shadow">Discover entire homes and private rooms perfect for any trip in India.</p>
+                    <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-4 drop-shadow-lg">Find your next getaway</h1>
+                    <p className="text-lg sm:text-xl max-w-2xl mb-8 drop-shadow">Discover entire homes and private rooms perfect for any trip in India.</p>
                 </div>
             </div>
             
@@ -47,7 +47,7 @@ const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                         {Array.from({ length: 8 }).map((_, i) => (
                              <div key={i} className="animate-pulse">
-                                 <div className="bg-gray-800 h-64 rounded-lg"></div>
+                                 <div className="bg-gray-800 h-64 rounded-xl"></div>
                                  <div className="mt-3 bg-gray-800 h-6 rounded-md w-3/4"></div>
                                  <div className="mt-2 bg-gray-800 h-4 rounded-md w-1/2"></div>
                                  <div className="mt-2 bg-gray-800 h-4 rounded-md w-1/3"></div>

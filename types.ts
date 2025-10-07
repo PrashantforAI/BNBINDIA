@@ -1,3 +1,9 @@
+export interface CalendarEvent {
+    date: string; // YYYY-MM-DD
+    type: 'maintenance' | 'personal' | 'season';
+    notes?: string;
+}
+
 export interface Property {
     id: string;
     title: string;
@@ -21,6 +27,7 @@ export interface Property {
     type: 'Villa' | 'Apartment' | 'House' | 'Cottage';
     status: 'listed' | 'unlisted';
     priceOverrides?: PriceOverride[];
+    events?: CalendarEvent[];
 }
 
 export interface PriceOverride {
