@@ -28,6 +28,11 @@ export interface Property {
     status: 'listed' | 'unlisted';
     priceOverrides?: PriceOverride[];
     events?: CalendarEvent[];
+    highlights?: { icon: string; title: string; subtitle: string; }[];
+    sleepingArrangements?: { room: string; beds: { type: string; count: number }[] }[];
+    houseRules?: string[];
+    healthAndSafety?: string[];
+    cancellationPolicy?: string;
 }
 
 export interface PriceOverride {
@@ -43,6 +48,11 @@ export interface User {
     isHost: boolean;
     wishlist: string[];
     about: string;
+    isSuperhost?: boolean;
+    joinDate?: string;
+    responseRate?: number;
+    responseTime?: string;
+    coHosts?: User[];
 }
 
 export interface Booking {
@@ -63,6 +73,15 @@ export interface Review {
     rating: number;
     comment: string;
     date: Date;
+    subRatings?: {
+        cleanliness: number;
+        accuracy: number;
+        checkIn: number;
+        communication: number;
+        location: number;
+        value: number;
+    };
+    hostResponse?: string;
 }
 
 export interface Message {

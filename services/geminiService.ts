@@ -306,3 +306,27 @@ export const suggestPricingStrategy = async (property: Property, bookings: Booki
         return "<ul><li>Could not generate suggestions at this time.</li></ul>";
     }
 };
+
+export const getNearbyAttractions = async (location: { city: string, state: string, lat: number, lng: number }): Promise<string> => {
+    const prompt = `You are a local travel guide for India. A user is looking at a vacation rental in ${location.city}, ${location.state}.
+    Based on its approximate coordinates (lat: ${location.lat}, lng: ${location.lng}), provide a helpful guide to what's nearby.
+    Structure the output as a single block of HTML.
+    Include the following sections with <h2> headings:
+    1.  "Landmarks & Attractions": List 3-4 popular or unique local attractions.
+    2.  "Food & Drink": Suggest 3-4 notable restaurants, cafes, or local eateries.
+    3.  "Getting Around": Provide information on the nearest major Airport and Railway Station, and mention common local transport options (like rickshaws, taxis, metro).
+
+    For each item in the lists, use a <ul> with <li> tags. Each <li> should have a <strong> tag for the name and a short, helpful description.
+    Keep the tone friendly and encouraging. Do not use markdown.
+    `;
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+        });
+        return response.text;
+    } catch (error) {
+        console.error("Error generating nearby attractions:", error);
+        return "<h2>Explore the Area</h2><p>Discover the local charm of " + location.city + ". From delicious food to scenic spots, there's always something to do!</p>";
+    }
+};

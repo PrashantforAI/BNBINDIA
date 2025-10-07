@@ -207,6 +207,14 @@ const EditListingPage: React.FC<EditListingPageProps> = ({ navigate, propertyId 
                                     <label className="block font-medium text-gray-200">State</label>
                                     <input type="text" placeholder="e.g., Maharashtra" value={state.location?.state} onChange={e => dispatch({type: 'SET_LOCATION_FIELD', field: 'state', value: e.target.value})} className="w-full p-2 bg-gray-700 border border-gray-600 rounded-md" />
                                 </div>
+                                <div>
+                                    <label className="block font-medium text-gray-200">Latitude</label>
+                                    <input type="number" placeholder="e.g., 18.75" value={state.location?.lat} onChange={e => dispatch({type: 'SET_LOCATION_FIELD', field: 'lat', value: parseFloat(e.target.value)})} className="w-full p-2 bg-gray-700 border border-gray-600 rounded-md" />
+                                </div>
+                                <div>
+                                    <label className="block font-medium text-gray-200">Longitude</label>
+                                    <input type="number" placeholder="e.g., 73.41" value={state.location?.lng} onChange={e => dispatch({type: 'SET_LOCATION_FIELD', field: 'lng', value: parseFloat(e.target.value)})} className="w-full p-2 bg-gray-700 border border-gray-600 rounded-md" />
+                                </div>
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <div>

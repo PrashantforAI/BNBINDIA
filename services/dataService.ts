@@ -1,15 +1,27 @@
 import { Property, User, Booking, Review, SearchFilters, PriceOverride, Conversation, Message } from '../types';
 
 const users: User[] = [
-    { id: 'user1', name: 'Rohan Sharma', email: 'rohan@example.com', avatarUrl: 'https://i.pravatar.cc/150?u=user1', isHost: true, wishlist: ['prop4'], about: "I'm a travel enthusiast and tech professional based in Mumbai. I love hosting and sharing my beautiful properties with fellow travelers. My goal is to provide a 5-star experience, ensuring you have a comfortable and memorable stay. Welcome to my homes!" },
+    { 
+        id: 'user1', name: 'Rohan Sharma', email: 'rohan@example.com', avatarUrl: 'https://i.pravatar.cc/150?u=user1', isHost: true, wishlist: ['prop4'], about: "I'm a travel enthusiast and tech professional based in Mumbai. I love hosting and sharing my beautiful properties with fellow travelers. My goal is to provide a 5-star experience, ensuring you have a comfortable and memorable stay. Welcome to my homes!",
+        isSuperhost: true, joinDate: "2020", responseRate: 100, responseTime: "within an hour"
+    },
     { id: 'user2', name: 'Priya Patel', email: 'priya@example.com', avatarUrl: 'https://i.pravatar.cc/150?u=user2', isHost: false, wishlist: [], about: " Avid traveler and foodie. Always looking for the next adventure and a great place to stay." },
-    { id: 'user3', name: 'Amit Singh', email: 'amit@example.com', avatarUrl: 'https://i.pravatar.cc/150?u=user3', isHost: true, wishlist: ['prop1', 'prop7'], about: "Designer and part-time host from Delhi. My properties reflect my passion for heritage architecture and modern comforts. I enjoy meeting people from around the world and helping them discover the best of India." },
+    { 
+        id: 'user3', name: 'Amit Singh', email: 'amit@example.com', avatarUrl: 'https://i.pravatar.cc/150?u=user3', isHost: true, wishlist: ['prop1', 'prop7'], about: "Designer and part-time host from Delhi. My properties reflect my passion for heritage architecture and modern comforts. I enjoy meeting people from around the world and helping them discover the best of India.",
+        joinDate: "2021", responseRate: 95, responseTime: "within a few hours"
+    },
     { id: 'user4', name: 'Sunita Rao', email: 'sunita@example.com', avatarUrl: 'https://i.pravatar.cc/150?u=user4', isHost: false, wishlist: [], about: "Exploring India one city at a time. I value clean, safe, and well-located stays." },
 ];
 
 let properties: Property[] = [
     // Lonavala
-    { id: 'prop1', title: 'Serene Villa with Private Pool', description: '', location: { city: 'Lonavala', state: 'Maharashtra', country: 'India', lat: 18.75, lng: 73.41 }, pricePerNight: 12000, hostId: 'user1', images: ['https://picsum.photos/seed/prop1/800/600', 'https://picsum.photos/seed/prop1a/800/600', 'https://picsum.photos/seed/prop1b/800/600', 'https://picsum.photos/seed/prop1c/800/600', 'https://picsum.photos/seed/prop1d/800/600'], amenities: ['Pool', 'Wifi', 'Air Conditioning', 'Kitchen', 'Parking'], bedrooms: 4, bathrooms: 4, maxGuests: 10, rating: 4.8, reviewCount: 45, type: 'Villa', status: 'listed',
+    { 
+      id: 'prop1', title: 'Serene Villa with Private Pool & Lawn', description: 'Escape to our luxurious 4-bedroom villa in the heart of Lonavala. Perfect for families and groups, this serene retreat features a stunning private pool, a lush green lawn, and modern amenities. Enjoy breathtaking mountain views from the spacious balconies and unwind in style. The villa is designed for comfort and relaxation, with elegantly furnished interiors and a fully equipped kitchen. Whether you\'re looking for a peaceful getaway or a place to celebrate, our villa offers the perfect blend of luxury and nature.', 
+      location: { city: 'Lonavala', state: 'Maharashtra', country: 'India', lat: 18.75, lng: 73.41 }, 
+      pricePerNight: 12000, hostId: 'user1', 
+      images: ['https://picsum.photos/seed/prop1/800/600', 'https://picsum.photos/seed/prop1a/800/600', 'https://picsum.photos/seed/prop1b/800/600', 'https://picsum.photos/seed/prop1c/800/600', 'https://picsum.photos/seed/prop1d/800/600'], 
+      amenities: ['Pool', 'Wifi', 'Air Conditioning', 'Kitchen', 'Parking', 'Garden', 'Workspace', 'TV', 'Freezer', 'Washing Machine', 'Balcony', 'Projector'], 
+      bedrooms: 4, bathrooms: 4, maxGuests: 10, rating: 4.8, reviewCount: 45, type: 'Villa', status: 'listed',
       priceOverrides: [
         { date: '2024-12-24', price: 18000 },
         { date: '2024-12-25', price: 20000 },
@@ -18,7 +30,21 @@ let properties: Property[] = [
       events: [
         { date: '2024-11-10', type: 'maintenance', notes: 'Pool cleaning' },
         { date: '2024-11-11', type: 'maintenance', notes: 'Pool cleaning' },
-      ]
+      ],
+      highlights: [
+          { icon: 'self-check-in', title: 'Self check-in', subtitle: 'Check yourself in with the lockbox.' },
+          { icon: 'superhost', title: 'Rohan is a Superhost', subtitle: 'Superhosts are experienced, highly-rated hosts who are committed to providing great stays for guests.' },
+          { icon: 'cancellation', title: 'Free cancellation for 48 hours', subtitle: '' },
+      ],
+      sleepingArrangements: [
+          { room: 'Bedroom 1', beds: [{ type: 'King bed', count: 1 }] },
+          { room: 'Bedroom 2', beds: [{ type: 'Queen bed', count: 1 }] },
+          { room: 'Bedroom 3', beds: [{ type: 'Queen bed', count: 1 }] },
+          { room: 'Bedroom 4', beds: [{ type: 'Single bed', count: 2 }] },
+      ],
+      houseRules: ['Check-in: After 2:00 PM', 'Checkout: 11:00 AM', 'No smoking', 'No pets', 'No parties or events'],
+      healthAndSafety: ['Smoke alarm', 'First aid kit', 'Fire extinguisher'],
+      cancellationPolicy: 'Add your trip dates to get the cancellation details for this stay.'
     },
     { id: 'prop2', title: 'Cozy Mountain View Cottage', description: 'A charming cottage nestled in the hills of Lonavala, offering breathtaking views and a tranquil escape. Perfect for couples and small families looking for a peaceful getaway.', location: { city: 'Lonavala', state: 'Maharashtra', country: 'India', lat: 18.76, lng: 73.40 }, pricePerNight: 6500, hostId: 'user3', images: ['https://picsum.photos/seed/prop2/800/600', 'https://picsum.photos/seed/prop2a/800/600'], amenities: ['Wifi', 'Kitchen', 'Heating', 'Garden'], bedrooms: 2, bathrooms: 2, maxGuests: 4, rating: 4.9, reviewCount: 62, type: 'Cottage', status: 'listed' },
     // Goa
@@ -42,10 +68,24 @@ let bookings: Booking[] = [
 ];
 
 const reviews: Review[] = [
-    { id: 'rev1', propertyId: 'prop1', guestId: 'user2', rating: 5, comment: 'Absolutely stunning villa! The pool was fantastic and the host was very helpful. We had a great family vacation.', date: new Date('2024-05-16') },
-    { id: 'rev2', propertyId: 'prop1', guestId: 'user4', rating: 4, comment: 'Great location and beautiful property. The wifi was a bit slow, but everything else was perfect.', date: new Date('2024-04-20') },
-    { id: 'rev3', propertyId: 'prop3', guestId: 'user4', rating: 5, comment: 'The view from the apartment is unbeatable. Waking up to the sound of waves was magical. Highly recommend!', date: new Date('2024-06-26') },
-    { id: 'rev4', propertyId: 'prop4', guestId: 'user2', rating: 5, comment: 'Felt like royalty in this Goan house. It\'s spacious, clean, and has such a unique character.', date: new Date('2024-03-10') },
+    { 
+      id: 'rev1', propertyId: 'prop1', guestId: 'user2', rating: 5, comment: 'Absolutely stunning villa! The pool was fantastic and the host was very helpful. We had a great family vacation.', date: new Date('2024-05-16'),
+      subRatings: { cleanliness: 5, accuracy: 5, checkIn: 5, communication: 5, location: 4.8, value: 4.9 },
+      hostResponse: "Thank you, Priya! We're so glad you and your family enjoyed your stay. We'd love to host you again anytime."
+    },
+    { 
+      id: 'rev2', propertyId: 'prop1', guestId: 'user4', rating: 4, comment: 'Great location and beautiful property. The wifi was a bit slow, but everything else was perfect.', date: new Date('2024-04-20'),
+      subRatings: { cleanliness: 4.5, accuracy: 4.7, checkIn: 5, communication: 5, location: 5, value: 4 },
+      hostResponse: "Thanks for the feedback, Sunita. We're happy you had a perfect stay otherwise and have already upgraded our WiFi plan based on your comment. Hope to see you again."
+    },
+    { 
+      id: 'rev3', propertyId: 'prop3', guestId: 'user4', rating: 5, comment: 'The view from the apartment is unbeatable. Waking up to the sound of waves was magical. Highly recommend!', date: new Date('2024-06-26'),
+      subRatings: { cleanliness: 5, accuracy: 5, checkIn: 5, communication: 4.8, location: 5, value: 4.8 }
+    },
+    { 
+      id: 'rev4', propertyId: 'prop4', guestId: 'user2', rating: 5, comment: 'Felt like royalty in this Goan house. It\'s spacious, clean, and has such a unique character.', date: new Date('2024-03-10'),
+      subRatings: { cleanliness: 4.9, accuracy: 4.8, checkIn: 5, communication: 5, location: 4.7, value: 4.9 }
+    },
 ];
 
 let conversations: Conversation[] = [
