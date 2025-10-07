@@ -1,10 +1,10 @@
 import { Property, User, Booking, Review, SearchFilters, PriceOverride, Conversation, Message } from '../types';
 
 const users: User[] = [
-    { id: 'user1', name: 'Rohan Sharma', email: 'rohan@example.com', avatarUrl: 'https://i.pravatar.cc/150?u=user1', isHost: true, wishlist: ['prop4'] },
-    { id: 'user2', name: 'Priya Patel', email: 'priya@example.com', avatarUrl: 'https://i.pravatar.cc/150?u=user2', isHost: false, wishlist: [] },
-    { id: 'user3', name: 'Amit Singh', email: 'amit@example.com', avatarUrl: 'https://i.pravatar.cc/150?u=user3', isHost: true, wishlist: ['prop1', 'prop7'] },
-    { id: 'user4', name: 'Sunita Rao', email: 'sunita@example.com', avatarUrl: 'https://i.pravatar.cc/150?u=user4', isHost: false, wishlist: [] },
+    { id: 'user1', name: 'Rohan Sharma', email: 'rohan@example.com', avatarUrl: 'https://i.pravatar.cc/150?u=user1', isHost: true, wishlist: ['prop4'], about: "I'm a travel enthusiast and tech professional based in Mumbai. I love hosting and sharing my beautiful properties with fellow travelers. My goal is to provide a 5-star experience, ensuring you have a comfortable and memorable stay. Welcome to my homes!" },
+    { id: 'user2', name: 'Priya Patel', email: 'priya@example.com', avatarUrl: 'https://i.pravatar.cc/150?u=user2', isHost: false, wishlist: [], about: " Avid traveler and foodie. Always looking for the next adventure and a great place to stay." },
+    { id: 'user3', name: 'Amit Singh', email: 'amit@example.com', avatarUrl: 'https://i.pravatar.cc/150?u=user3', isHost: true, wishlist: ['prop1', 'prop7'], about: "Designer and part-time host from Delhi. My properties reflect my passion for heritage architecture and modern comforts. I enjoy meeting people from around the world and helping them discover the best of India." },
+    { id: 'user4', name: 'Sunita Rao', email: 'sunita@example.com', avatarUrl: 'https://i.pravatar.cc/150?u=user4', isHost: false, wishlist: [], about: "Exploring India one city at a time. I value clean, safe, and well-located stays." },
 ];
 
 let properties: Property[] = [
@@ -99,6 +99,12 @@ export const dataService = {
            }
             
             setTimeout(() => resolve(filteredProperties), 300); // Simulate network delay
+        });
+    },
+    getPropertiesByHostId: (hostId: string): Promise<Property[]> => {
+        return new Promise(resolve => {
+            const hostProperties = properties.filter(p => p.hostId === hostId && p.status === 'listed');
+            setTimeout(() => resolve(hostProperties), 200);
         });
     },
     getPropertyById: (id: string): Promise<Property | undefined> => {
@@ -200,30 +206,42 @@ export const dataService = {
             setTimeout(() => resolve(userConversations), 200);
         });
     },
-    getConversationByBookingId: (bookingId: string): Promise<Conversation | undefined> => {
+    getConversationById: (id: string): Promise<Conversation | undefined> => {
         return new Promise(resolve => {
-            setTimeout(() => resolve(conversations.find(c => c.id === bookingId)), 100);
+            setTimeout(() => resolve(conversations.find(c => c.id === id)), 100);
         });
     },
-    sendMessage: (bookingId: string, message: Omit<Message, 'id' | 'timestamp'>): Promise<Conversation> => {
-        return new Promise((resolve, reject) => {
-            let conversation = conversations.find(c => c.id === bookingId);
-            const booking = bookings.find(b => b.id === bookingId);
-            const property = properties.find(p => p.id === booking?.propertyId);
-
-            if (!booking || !property) {
-                 return reject(new Error("Booking or property not found"));
+    getOrCreateConversation: (guestId: string, propertyId: string): Promise<Conversation> => {
+        return new Promise(async (resolve) => {
+            const property = await dataService.getPropertyById(propertyId);
+            if (!property) {
+                throw new Error("Property not found");
             }
+            const hostId = property.hostId;
+            const conversationId = `${guestId}-${propertyId}`;
 
-            if (!conversation) {
-                // Create a new conversation if it doesn't exist
+            let conversation = conversations.find(c => c.id === conversationId);
+
+            if (conversation) {
+                setTimeout(() => resolve(conversation!), 100);
+            } else {
                 conversation = {
-                    id: bookingId,
-                    propertyId: booking.propertyId,
-                    participantIds: [booking.guestId, property.hostId],
+                    id: conversationId,
+                    propertyId: propertyId,
+                    participantIds: [guestId, hostId],
                     messages: [],
                 };
                 conversations.push(conversation);
+                setTimeout(() => resolve(conversation!), 100);
+            }
+        });
+    },
+    sendMessage: (conversationId: string, message: Omit<Message, 'id' | 'timestamp'>): Promise<Conversation> => {
+        return new Promise((resolve, reject) => {
+            let conversation = conversations.find(c => c.id === conversationId);
+
+            if (!conversation) {
+                 return reject(new Error("Conversation not found"));
             }
             
             const newMessage: Message = {
@@ -234,6 +252,18 @@ export const dataService = {
             conversation.messages.push(newMessage);
 
             setTimeout(() => resolve(conversation!), 300);
+        });
+    },
+    updateMessage: (conversationId: string, messageId: string, updates: Partial<Message>): Promise<Message | undefined> => {
+        return new Promise((resolve) => {
+            const conversation = conversations.find(c => c.id === conversationId);
+            if (!conversation) return resolve(undefined);
+            
+            const messageIndex = conversation.messages.findIndex(m => m.id === messageId);
+            if(messageIndex === -1) return resolve(undefined);
+
+            conversation.messages[messageIndex] = { ...conversation.messages[messageIndex], ...updates };
+            setTimeout(() => resolve(conversation.messages[messageIndex]), 100);
         });
     },
     getHostDashboardData: (hostId: string): Promise<{

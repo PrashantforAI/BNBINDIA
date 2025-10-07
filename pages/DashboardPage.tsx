@@ -50,7 +50,7 @@ const TripCard: React.FC<{ booking: Booking, navigate: NavigateFunction }> = ({ 
                     <p className="font-bold text-lg text-gray-50">₹{booking.totalPrice.toLocaleString('en-IN')}</p>
                     <p className="text-sm text-gray-400">Total Price</p>
                      <button 
-                        onClick={() => navigate(Page.INBOX, { bookingId: booking.id })}
+                        onClick={() => navigate(Page.INBOX, { conversationId: booking.id })}
                         className="mt-3 text-sm bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-600 font-semibold transition"
                     >
                         Message Host

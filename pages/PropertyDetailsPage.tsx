@@ -7,6 +7,7 @@ import { generateDescription, summarizeReviews } from '../services/geminiService
 interface PropertyDetailsPageProps {
     navigate: NavigateFunction;
     propertyId: string;
+    offerPrice?: number;
 }
 
 const StarIcon: React.FC<{ className?: string }> = ({ className }) => (
@@ -25,13 +26,14 @@ const dateToYyyyMmDd = (date: Date): string => {
     return date.toISOString().split('T')[0];
 }
 
-const BookingWidget: React.FC<{ property: Property, navigate: NavigateFunction }> = ({ property, navigate }) => {
+const BookingWidget: React.FC<{ property: Property, navigate: NavigateFunction, offerPrice?: number }> = ({ property, navigate, offerPrice }) => {
     const { user } = useAuth();
     const [checkIn, setCheckIn] = useState<string>('');
     const [checkOut, setCheckOut] = useState<string>('');
     const [guests, setGuests] = useState<number>(1);
     
     const isHostOwner = user?.id === property.hostId;
+    const pricePerNight = offerPrice || property.pricePerNight;
 
     const { nights, basePrice } = useMemo(() => {
         if (!checkIn || !checkOut) return { nights: 0, basePrice: 0 };
@@ -46,11 +48,12 @@ const BookingWidget: React.FC<{ property: Property, navigate: NavigateFunction }
         for (let d = new Date(start); d < end; d.setDate(d.getDate() + 1)) {
             totalNights++;
             const dateString = dateToYyyyMmDd(d);
-            currentPrice += priceMap.get(dateString) || property.pricePerNight;
+            // An offer price overrides any date-specific prices.
+            currentPrice += offerPrice || priceMap.get(dateString) || property.pricePerNight;
         }
 
         return { nights: totalNights, basePrice: currentPrice };
-    }, [checkIn, checkOut, property.pricePerNight, property.priceOverrides]);
+    }, [checkIn, checkOut, property.pricePerNight, property.priceOverrides, offerPrice]);
 
     const serviceFee = basePrice * 0.1;
     const taxes = basePrice * 0.05;
@@ -84,9 +87,16 @@ const BookingWidget: React.FC<{ property: Property, navigate: NavigateFunction }
 
     return (
         <div className="sticky top-28 p-6 border border-gray-700 rounded-lg bg-gray-800">
+            {offerPrice && (
+                <div className="mb-4 p-3 bg-green-900/50 text-green-300 rounded-lg text-center">
+                    <p className="font-bold">Special Offer Applied!</p>
+                    <p className="text-sm">Your host has offered you a special price.</p>
+                </div>
+            )}
             <p className="text-2xl mb-4">
-                <span className="font-bold">₹{property.pricePerNight.toLocaleString('en-IN')}</span>
+                <span className="font-bold">₹{pricePerNight.toLocaleString('en-IN')}</span>
                 <span className="text-gray-400 font-normal text-base"> night</span>
+                 {offerPrice && <span className="text-sm ml-2 line-through text-gray-500">₹{property.pricePerNight.toLocaleString('en-IN')}</span>}
             </p>
             <div className="grid grid-cols-2 gap-px border border-gray-600 rounded-lg mb-4">
                 <div className="p-2">
@@ -223,7 +233,7 @@ const GalleryModal: React.FC<{ images: string[], startIndex: number, onClose: ()
     )
 }
 
-const PropertyDetailsPage: React.FC<PropertyDetailsPageProps> = ({ navigate, propertyId }) => {
+const PropertyDetailsPage: React.FC<PropertyDetailsPageProps> = ({ navigate, propertyId, offerPrice }) => {
     const { user, toggleWishlist } = useAuth();
     const [property, setProperty] = useState<Property | null>(null);
     const [host, setHost] = useState<User | null>(null);
@@ -264,13 +274,24 @@ const PropertyDetailsPage: React.FC<PropertyDetailsPageProps> = ({ navigate, pro
         toggleWishlist(propertyId);
     };
     
+    const handleContactHost = async () => {
+        if (!user || !property) {
+            alert('Please log in to contact the host.');
+            return;
+        }
+        const convo = await dataService.getOrCreateConversation(user.id, property.id);
+        navigate(Page.INBOX, { conversationId: convo.id });
+    };
+
     const openGallery = (index: number) => {
         setGalleryStartIndex(index);
         setGalleryOpen(true);
     };
 
     if (loading) return <div className="text-center py-20">Loading...</div>;
-    if (!property) return <div className="text-center py-20">Property not found.</div>;
+    if (!property || !host) return <div className="text-center py-20">Property not found.</div>;
+
+    const isOwnListing = user?.id === host.id;
 
     return (
         <div className="container mx-auto px-4 py-12">
@@ -306,12 +327,28 @@ const PropertyDetailsPage: React.FC<PropertyDetailsPageProps> = ({ navigate, pro
                 <div className="md:col-span-2">
                     <div className="pb-8 border-b border-gray-700">
                         <div className="flex justify-between items-start">
-                             <div>
-                                <h2 className="text-2xl font-semibold">Entire {property.type} hosted by {host?.name}</h2>
+                             <div 
+                                className="cursor-pointer group"
+                                onClick={() => navigate(Page.HOST_PROFILE, { hostId: host.id })}
+                             >
+                                <h2 className="text-2xl font-semibold group-hover:underline">Entire {property.type} hosted by {host.name}</h2>
                                 <p className="text-gray-400">{property.maxGuests} guests · {property.bedrooms} bedrooms · {property.bathrooms} bathrooms</p>
                             </div>
-                            <img src={host?.avatarUrl} alt={host?.name} className="w-14 h-14 rounded-full" />
+                            <img 
+                                src={host.avatarUrl} 
+                                alt={host.name} 
+                                className="w-14 h-14 rounded-full cursor-pointer" 
+                                onClick={() => navigate(Page.HOST_PROFILE, { hostId: host.id })}
+                            />
                         </div>
+                        {!isOwnListing && user && (
+                            <button 
+                                onClick={handleContactHost}
+                                className="mt-4 bg-gray-700 text-gray-50 font-bold py-2 px-4 rounded-lg hover:bg-gray-600 transition"
+                            >
+                                Contact host
+                            </button>
+                        )}
                     </div>
 
                     <div className="py-10 border-b border-gray-700">
@@ -353,7 +390,7 @@ const PropertyDetailsPage: React.FC<PropertyDetailsPageProps> = ({ navigate, pro
                     </div>
                 </div>
                 <div className="md:col-span-1">
-                    <BookingWidget property={property} navigate={navigate} />
+                    <BookingWidget property={property} navigate={navigate} offerPrice={offerPrice} />
                 </div>
             </div>
             {isGalleryOpen && <GalleryModal images={property.images} startIndex={galleryStartIndex} onClose={() => setGalleryOpen(false)} />}

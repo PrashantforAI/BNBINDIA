@@ -57,8 +57,8 @@ const UserMenu: React.FC<{ navigate: NavigateFunction }> = ({ navigate }) => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const handleNavigate = (page: Page) => {
-        navigate(page);
+    const handleNavigate = (page: Page, params = {}) => {
+        navigate(page, params);
         setIsOpen(false);
     }
     
@@ -74,6 +74,7 @@ const UserMenu: React.FC<{ navigate: NavigateFunction }> = ({ navigate }) => {
                 <div className="absolute right-0 mt-2 w-56 bg-gray-800 rounded-lg shadow-lg z-20 py-2 border border-gray-700">
                     <a onClick={() => handleNavigate(Page.DASHBOARD)} className="block px-4 py-2 text-gray-200 hover:bg-gray-700 cursor-pointer">My Trips</a>
                     <a onClick={() => handleNavigate(Page.INBOX)} className="block px-4 py-2 text-gray-200 hover:bg-gray-700 cursor-pointer">Inbox</a>
+                    {user?.isHost && <a onClick={() => handleNavigate(Page.HOST_PROFILE, { hostId: user.id })} className="block px-4 py-2 text-gray-200 hover:bg-gray-700 cursor-pointer">My Profile</a>}
                     {user?.isHost && <a onClick={() => handleNavigate(Page.HOST_TODAY)} className="block px-4 py-2 text-gray-200 hover:bg-gray-700 cursor-pointer font-semibold">Go to Hosting</a>}
                     <div className="border-t my-2 border-gray-700"></div>
                     <a onClick={() => { logout(); setIsOpen(false); navigate(Page.HOME) }} className="block px-4 py-2 text-gray-200 hover:bg-gray-700 cursor-pointer">Log out</a>
@@ -86,17 +87,8 @@ const UserMenu: React.FC<{ navigate: NavigateFunction }> = ({ navigate }) => {
 const Header: React.FC<HeaderProps> = ({ navigate, currentPage }) => {
     const { user } = useAuth();
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
     
     const isHostView = user?.isHost && HOST_PAGES.includes(currentPage);
-
-    const handleHeaderSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        if(searchQuery.trim()){
-            navigate(Page.SEARCH, { filters: { location: searchQuery.trim() }});
-            setSearchQuery('');
-        }
-    }
 
     const renderHostNav = () => (
         <nav className="flex items-center space-x-6 text-sm font-medium text-gray-200">
@@ -105,22 +97,10 @@ const Header: React.FC<HeaderProps> = ({ navigate, currentPage }) => {
     );
 
     const renderGuestNav = () => (
-        <div className="hidden sm:block flex-1 max-w-lg mx-4">
-            <form onSubmit={handleHeaderSearch} className="w-full">
-                <div className="relative flex items-center text-gray-400 focus-within:text-gray-200">
-                    <input 
-                        type="search"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Start your search"
-                        className="w-full pl-4 pr-12 py-2 bg-gray-800 border border-gray-700 rounded-full focus:outline-none focus:ring-1 focus:ring-brand"
-                    />
-                     <button type="submit" className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 bg-brand text-white rounded-full hover:bg-brand-dark">
-                        <SearchIcon className="w-5 h-5" />
-                    </button>
-                </div>
-            </form>
-        </div>
+         <nav className="hidden sm:flex items-center space-x-6 text-gray-200 font-medium">
+            <a onClick={() => navigate(Page.HOME)} className="hover:text-brand cursor-pointer">Stays</a>
+            <a className="hover:text-brand cursor-pointer">Experiences</a>
+        </nav>
     );
 
 

@@ -1,14 +1,147 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { NavigateFunction, Page, Conversation, Property, User, Booking } from '../types';
+import { NavigateFunction, Page, Conversation, Property, User, Booking, Message } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import { dataService } from '../services/dataService';
+import PropertyCard from '../components/PropertyCard';
 
 interface InboxPageProps {
     navigate: NavigateFunction;
-    initialBookingId?: string;
+    initialConversationId?: string;
 }
 
-const InboxPage: React.FC<InboxPageProps> = ({ navigate, initialBookingId }) => {
+const SharedPropertyCard: React.FC<{ propertyId: string; navigate: NavigateFunction; }> = ({ propertyId, navigate }) => {
+    const [property, setProperty] = useState<Property | null>(null);
+    useEffect(() => {
+        dataService.getPropertyById(propertyId).then(p => setProperty(p || null));
+    }, [propertyId]);
+
+    if (!property) return <div className="p-2 rounded-lg bg-gray-600 animate-pulse h-24 my-2"></div>;
+
+    return (
+        <div className="p-2 rounded-lg bg-gray-600 hover:bg-gray-500 cursor-pointer my-2" onClick={() => navigate(Page.PROPERTY, { id: property.id })}>
+            <div className="flex space-x-3">
+                <img src={property.images[0]} alt={property.title} className="w-20 h-20 object-cover rounded-md" />
+                <div>
+                    <p className="font-bold text-sm text-gray-50">{property.title}</p>
+                    <p className="text-xs text-gray-300">{property.location.city}</p>
+                    <p className="text-sm font-semibold mt-1 text-gray-50">₹{property.pricePerNight.toLocaleString()}/night</p>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const OfferCard: React.FC<{ message: Message; conversation: Conversation; user: User; navigate: NavigateFunction; onUpdate: () => void; }> = ({ message, conversation, user, navigate, onUpdate }) => {
+    const isHost = user.id !== message.senderId;
+
+    const handleAccept = async () => {
+        await dataService.updateMessage(conversation.id, message.id, { offerStatus: 'accepted' });
+        const property = await dataService.getPropertyById(conversation.propertyId);
+        onUpdate();
+        if (property && message.offer) {
+            navigate(Page.PROPERTY, { id: property.id, offerPrice: message.offer.pricePerNight });
+        }
+    };
+    
+    let statusText = 'Offer Sent';
+    let statusColor = 'bg-blue-900/50 text-blue-300';
+    if(message.offerStatus === 'accepted') {
+        statusText = 'Offer Accepted';
+        statusColor = 'bg-green-900/50 text-green-300';
+    }
+
+    return (
+         <div className="p-3 rounded-lg bg-gray-600 my-2">
+            <div className="flex justify-between items-center mb-2">
+                <p className="font-bold text-gray-50">Special Offer</p>
+                <span className={`text-xs font-bold px-2 py-1 rounded-full ${statusColor}`}>{statusText}</span>
+            </div>
+            <p className="text-sm text-gray-300 italic mb-2">"{message.offer?.notes}"</p>
+            <div className="border-t border-gray-500 pt-2">
+                <p className="text-lg font-bold text-gray-50">₹{message.offer?.pricePerNight.toLocaleString()}<span className="text-sm font-normal text-gray-300">/night</span></p>
+            </div>
+            {isHost && message.offerStatus === 'pending' && (
+                <button onClick={handleAccept} className="w-full text-center bg-brand text-gray-900 font-bold py-2 mt-3 rounded-lg hover:bg-brand-dark transition text-sm">
+                    Accept & Book Now
+                </button>
+            )}
+        </div>
+    );
+};
+
+const SharePropertyModal: React.FC<{ isOpen: boolean, onClose: () => void, onSelect: (propertyId: string) => void, currentPropertyId: string }> = ({ isOpen, onClose, onSelect, currentPropertyId }) => {
+    const { user } = useAuth();
+    const [properties, setProperties] = useState<Property[]>([]);
+
+    useEffect(() => {
+        if (isOpen && user) {
+            dataService.getPropertiesByHostId(user.id).then(props => {
+                setProperties(props.filter(p => p.id !== currentPropertyId));
+            });
+        }
+    }, [isOpen, user, currentPropertyId]);
+
+    if (!isOpen) return null;
+
+    return (
+         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50" onClick={onClose}>
+            <div className="bg-gray-800 rounded-lg p-6 w-full max-w-lg shadow-xl border border-gray-700" onClick={e => e.stopPropagation()}>
+                <h3 className="text-xl font-bold mb-4 text-gray-50">Share another property</h3>
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                    {properties.map(p => (
+                        <div key={p.id} onClick={() => onSelect(p.id)} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-700 cursor-pointer">
+                            <img src={p.images[0]} alt={p.title} className="w-16 h-16 object-cover rounded-md" />
+                            <div>
+                                <p className="font-semibold text-gray-200">{p.title}</p>
+                                <p className="text-sm text-gray-400">{p.location.city}</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    )
+};
+
+const MakeOfferModal: React.FC<{ isOpen: boolean, onClose: () => void, onSubmit: (price: number, notes: string) => void, defaultPrice: number }> = ({ isOpen, onClose, onSubmit, defaultPrice }) => {
+    const [price, setPrice] = useState(defaultPrice);
+    const [notes, setNotes] = useState('');
+    
+    const handleSubmit = () => {
+        if(price > 0 && notes.trim()){
+            onSubmit(price, notes);
+        } else {
+            alert('Please enter a valid price and notes for the offer.');
+        }
+    }
+    
+    if (!isOpen) return null;
+
+     return (
+         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50" onClick={onClose}>
+            <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md shadow-xl border border-gray-700" onClick={e => e.stopPropagation()}>
+                <h3 className="text-xl font-bold mb-4 text-gray-50">Make a Special Offer</h3>
+                <div className="space-y-4">
+                     <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">Offer Price per Night (₹)</label>
+                        <input type="number" value={price} onChange={e => setPrice(Number(e.target.value))} className="w-full p-2 bg-gray-700 border border-gray-600 rounded-md" />
+                    </div>
+                     <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">Notes for Guest</label>
+                        <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} placeholder="e.g., Discount for a longer stay." className="w-full p-2 bg-gray-700 border border-gray-600 rounded-md"></textarea>
+                    </div>
+                    <div className="flex justify-end space-x-3">
+                        <button onClick={onClose} className="px-4 py-2 rounded-lg bg-gray-600 hover:bg-gray-500 font-semibold">Cancel</button>
+                        <button onClick={handleSubmit} className="px-4 py-2 rounded-lg bg-brand text-gray-900 hover:bg-brand-dark font-semibold">Send Offer</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+
+const InboxPage: React.FC<InboxPageProps> = ({ navigate, initialConversationId }) => {
     const { user } = useAuth();
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
@@ -16,6 +149,8 @@ const InboxPage: React.FC<InboxPageProps> = ({ navigate, initialBookingId }) => 
     const [loading, setLoading] = useState(true);
     const [newMessage, setNewMessage] = useState('');
     const [error, setError] = useState<string | null>(null);
+    const [isShareModalOpen, setShareModalOpen] = useState(false);
+    const [isOfferModalOpen, setOfferModalOpen] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const fetchConversations = async (keepSelection = false) => {
@@ -24,9 +159,10 @@ const InboxPage: React.FC<InboxPageProps> = ({ navigate, initialBookingId }) => 
         const convos = await dataService.getConversationsByUserId(user.id);
         setConversations(convos);
         
-        if (keepSelection && selectedConversation) {
-            const updatedSelected = convos.find(c => c.id === selectedConversation.id);
-            if (updatedSelected) setSelectedConversation(updatedSelected);
+        const currentSelectionId = keepSelection ? selectedConversation?.id : null;
+        if (currentSelectionId) {
+            const updatedSelected = convos.find(c => c.id === currentSelectionId);
+            setSelectedConversation(updatedSelected || null);
         }
 
         const dataPromises = convos.map(async (convo) => {
@@ -40,10 +176,10 @@ const InboxPage: React.FC<InboxPageProps> = ({ navigate, initialBookingId }) => 
         const dataMap = fetchedData.reduce((acc, { id, data }) => ({...acc, [id]: data }), {});
         setRelatedData(dataMap);
 
-        if (initialBookingId && !selectedConversation) {
-            const initialConvo = convos.find(c => c.id === initialBookingId);
+        if (initialConversationId && !currentSelectionId) {
+            const initialConvo = convos.find(c => c.id === initialConversationId);
             setSelectedConversation(initialConvo || convos[0] || null);
-        } else if (!selectedConversation) {
+        } else if (!currentSelectionId) {
             setSelectedConversation(convos[0] || null);
         }
 
@@ -52,21 +188,20 @@ const InboxPage: React.FC<InboxPageProps> = ({ navigate, initialBookingId }) => 
 
     useEffect(() => {
         fetchConversations();
-    }, [user, initialBookingId]);
+    }, [user, initialConversationId]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [selectedConversation?.messages]);
 
-    const handleSendMessage = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSendMessage = async (messageData: Omit<Message, 'id' | 'timestamp' | 'senderId'>) => {
         setError(null);
-        if (!newMessage.trim() || !selectedConversation || !user) return;
+        if (!selectedConversation || !user) return;
 
         try {
              await dataService.sendMessage(selectedConversation.id, {
                 senderId: user.id,
-                text: newMessage,
+                ...messageData,
             });
             setNewMessage('');
             await fetchConversations(true); // pass true to keep selection
@@ -75,24 +210,42 @@ const InboxPage: React.FC<InboxPageProps> = ({ navigate, initialBookingId }) => 
         }
     };
     
+    const handleTextSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if(newMessage.trim()) {
+            handleSendMessage({ text: newMessage });
+        }
+    }
+    
+    const handleShareSelect = (propertyId: string) => {
+        handleSendMessage({ propertyShareId: propertyId });
+        setShareModalOpen(false);
+    }
+    
+    const handleOfferSubmit = (price: number, notes: string) => {
+        handleSendMessage({ offer: { pricePerNight: price, notes }, offerStatus: 'pending' });
+        setOfferModalOpen(false);
+    }
+
     const renderReservationDetails = () => {
         if (!selectedConversation) return null;
         const data = relatedData[selectedConversation.id];
-        if (!data?.booking || !data?.property) return null;
+        if (!data?.property) return null;
 
         return (
             <div className="p-4 space-y-4">
-                <h3 className="font-bold text-lg text-gray-50">Reservation Details</h3>
+                <h3 className="font-bold text-lg text-gray-50">About the Listing</h3>
                 <img src={data.property.images[0]} alt={data.property.title} className="rounded-lg object-cover w-full h-32" />
                 <div>
                     <p className="font-semibold text-gray-200">{data.property.title}</p>
                     <p className="text-sm text-gray-400">{data.property.location.city}</p>
                 </div>
-                <div className="text-sm space-y-2 border-t border-gray-700 pt-4 text-gray-300">
-                    <div className="flex justify-between"><span>Dates:</span> <strong>{new Date(data.booking.startDate).toLocaleDateString()} - {new Date(data.booking.endDate).toLocaleDateString()}</strong></div>
-                    <div className="flex justify-between"><span>Guests:</span> <strong>{data.booking.guests}</strong></div>
-                    <div className="flex justify-between"><span>Total:</span> <strong>₹{data.booking.totalPrice.toLocaleString('en-IN')}</strong></div>
-                </div>
+                 {data.booking && (
+                     <div className="text-sm space-y-2 border-t border-gray-700 pt-4 text-gray-300">
+                        <div className="flex justify-between"><span>Dates:</span> <strong>{new Date(data.booking.startDate).toLocaleDateString()} - {new Date(data.booking.endDate).toLocaleDateString()}</strong></div>
+                        <div className="flex justify-between"><span>Guests:</span> <strong>{data.booking.guests}</strong></div>
+                    </div>
+                 )}
                  <button onClick={() => navigate(Page.PROPERTY, { id: data.property!.id })} className="w-full text-center bg-gray-700 py-2 rounded-lg hover:bg-gray-600 transition text-sm font-semibold">View Listing</button>
             </div>
         )
@@ -101,6 +254,9 @@ const InboxPage: React.FC<InboxPageProps> = ({ navigate, initialBookingId }) => 
 
     if (loading && conversations.length === 0) return <div className="text-center py-20">Loading messages...</div>;
     if (!user) return null;
+    
+    const selectedProperty = selectedConversation ? relatedData[selectedConversation.id]?.property : null;
+    const isHostForThisConvo = user.isHost && selectedProperty?.hostId === user.id;
 
     return (
         <div className="container mx-auto px-4 py-8">
@@ -122,7 +278,7 @@ const InboxPage: React.FC<InboxPageProps> = ({ navigate, initialBookingId }) => 
                                     <div className="overflow-hidden">
                                         <p className="font-bold truncate text-gray-200">{data?.otherUser?.name}</p>
                                         <p className="text-sm font-semibold text-gray-300 truncate">{data?.property?.title}</p>
-                                        <p className="text-sm text-gray-400 truncate">{lastMessage?.text}</p>
+                                        <p className="text-sm text-gray-400 truncate">{lastMessage?.text || (lastMessage?.offer ? 'Sent an offer' : 'Shared a property')}</p>
                                     </div>
                                 </div>
                             </div>
@@ -149,7 +305,9 @@ const InboxPage: React.FC<InboxPageProps> = ({ navigate, initialBookingId }) => 
                                     <div key={msg.id} className={`flex items-end gap-2 ${msg.senderId === user.id ? 'justify-end' : 'justify-start'}`}>
                                         {msg.senderId !== user.id && <img src={relatedData[selectedConversation.id]?.otherUser?.avatarUrl} className="w-8 h-8 rounded-full flex-shrink-0" alt="" />}
                                         <div className={`max-w-xs md:max-w-md p-3 rounded-2xl ${msg.senderId === user.id ? 'bg-brand text-gray-900 font-medium rounded-br-none' : 'bg-gray-700 text-gray-200 rounded-bl-none'}`}>
-                                            <p>{msg.text}</p>
+                                            {msg.text && <p>{msg.text}</p>}
+                                            {msg.propertyShareId && <SharedPropertyCard propertyId={msg.propertyShareId} navigate={navigate} />}
+                                            {msg.offer && <OfferCard message={msg} conversation={selectedConversation} user={user} navigate={navigate} onUpdate={() => fetchConversations(true)} />}
                                         </div>
                                     </div>
                                 ))}
@@ -158,7 +316,13 @@ const InboxPage: React.FC<InboxPageProps> = ({ navigate, initialBookingId }) => 
                             </div>
                             <div className="p-4 border-t border-gray-700 bg-gray-800">
                                  {error && <p className="text-red-500 text-sm mb-2 text-center">{error}</p>}
-                                <form onSubmit={handleSendMessage} className="flex items-center space-x-2">
+                                <form onSubmit={handleTextSubmit} className="flex items-center space-x-2">
+                                     {isHostForThisConvo && (
+                                        <div className="flex space-x-1">
+                                            <button type="button" onClick={() => setShareModalOpen(true)} className="p-3 text-gray-300 bg-gray-700 rounded-full hover:bg-gray-600"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" /></svg></button>
+                                            <button type="button" onClick={() => setOfferModalOpen(true)} className="p-3 text-gray-300 bg-gray-700 rounded-full hover:bg-gray-600"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" /></svg></button>
+                                        </div>
+                                    )}
                                     <input 
                                         type="text"
                                         value={newMessage}
@@ -185,6 +349,8 @@ const InboxPage: React.FC<InboxPageProps> = ({ navigate, initialBookingId }) => 
                    {renderReservationDetails()}
                 </div>
             </div>
+             {isHostForThisConvo && selectedProperty && <SharePropertyModal isOpen={isShareModalOpen} onClose={() => setShareModalOpen(false)} onSelect={handleShareSelect} currentPropertyId={selectedProperty.id} />}
+             {isHostForThisConvo && selectedProperty && <MakeOfferModal isOpen={isOfferModalOpen} onClose={() => setOfferModalOpen(false)} onSubmit={handleOfferSubmit} defaultPrice={selectedProperty.pricePerNight} />}
         </div>
     );
 };

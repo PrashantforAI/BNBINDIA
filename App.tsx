@@ -11,6 +11,8 @@ import SearchResultsPage from './pages/SearchResultsPage';
 import DashboardPage from './pages/DashboardPage';
 import BookingConfirmationPage from './pages/BookingConfirmationPage';
 import InboxPage from './pages/InboxPage';
+import HostProfilePage from './pages/HostProfilePage';
+
 
 // Host Pages & Layout
 import HostDashboardLayout from './components/HostDashboardLayout';
@@ -41,10 +43,11 @@ const AppContent: React.FC = () => {
             // Guest Pages
             case Page.HOME: return <HomePage {...props} />;
             case Page.SEARCH: return <SearchResultsPage navigate={navigate} initialFilters={view.params.filters} />;
-            case Page.PROPERTY: return <PropertyDetailsPage navigate={navigate} propertyId={view.params.id as string} />;
+            case Page.PROPERTY: return <PropertyDetailsPage navigate={navigate} propertyId={view.params.id as string} offerPrice={view.params.offerPrice as number | undefined} />;
             case Page.DASHBOARD: return <DashboardPage {...props} />;
             case Page.CONFIRMATION: return <BookingConfirmationPage navigate={navigate} bookingId={view.params.bookingId as string} />;
-            case Page.INBOX: return <InboxPage navigate={navigate} initialBookingId={view.params.bookingId as string} />;
+            case Page.INBOX: return <InboxPage navigate={navigate} initialConversationId={view.params.conversationId as string} />;
+            case Page.HOST_PROFILE: return <HostProfilePage navigate={navigate} hostId={view.params.hostId as string} />;
 
             // Host Pages
             case Page.HOST_TODAY: return <HostDashboardPage {...props} />;

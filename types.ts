@@ -35,6 +35,7 @@ export interface User {
     avatarUrl: string;
     isHost: boolean;
     wishlist: string[];
+    about: string;
 }
 
 export interface Booking {
@@ -60,12 +61,18 @@ export interface Review {
 export interface Message {
     id: string;
     senderId: string;
-    text: string;
     timestamp: Date;
+    text?: string;
+    propertyShareId?: string;
+    offer?: {
+        pricePerNight: number;
+        notes: string;
+    };
+    offerStatus?: 'pending' | 'accepted' | 'declined';
 }
 
 export interface Conversation {
-    id: string; // bookingId
+    id: string; // bookingId or guestId-propertyId
     propertyId: string;
     participantIds: string[];
     messages: Message[];
@@ -80,6 +87,7 @@ export enum Page {
     DASHBOARD = 'DASHBOARD',
     CONFIRMATION = 'CONFIRMATION',
     INBOX = 'INBOX',
+    HOST_PROFILE = 'HOST_PROFILE',
 
     // Host Pages
     HOST_TODAY = 'HOST_TODAY',
