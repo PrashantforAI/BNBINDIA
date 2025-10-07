@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { NavigateFunction, Page, Conversation, Property, User, Booking, Message } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import { dataService } from '../services/dataService';
+import { moderateMessage } from '../services/geminiService';
 import PropertyCard from '../components/PropertyCard';
 
 interface InboxPageProps {
@@ -149,6 +150,7 @@ const InboxPage: React.FC<InboxPageProps> = ({ navigate, initialConversationId }
     const [loading, setLoading] = useState(true);
     const [newMessage, setNewMessage] = useState('');
     const [error, setError] = useState<string | null>(null);
+    const [isSending, setIsSending] = useState(false);
     const [isShareModalOpen, setShareModalOpen] = useState(false);
     const [isOfferModalOpen, setOfferModalOpen] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -198,6 +200,18 @@ const InboxPage: React.FC<InboxPageProps> = ({ navigate, initialConversationId }
         setError(null);
         if (!selectedConversation || !user) return;
 
+        setIsSending(true);
+
+        // AI Moderation for text messages
+        if (messageData.text) {
+            const moderationResult = await moderateMessage(messageData.text);
+            if (!moderationResult.compliant) {
+                setError(moderationResult.reason);
+                setIsSending(false);
+                return; // Stop sending the message
+            }
+        }
+
         try {
              await dataService.sendMessage(selectedConversation.id, {
                 senderId: user.id,
@@ -207,12 +221,14 @@ const InboxPage: React.FC<InboxPageProps> = ({ navigate, initialConversationId }
             await fetchConversations(true); // pass true to keep selection
         } catch (err: any) {
             setError(err.message || "Failed to send message.");
+        } finally {
+            setIsSending(false);
         }
     };
     
     const handleTextSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if(newMessage.trim()) {
+        if(newMessage.trim() && !isSending) {
             handleSendMessage({ text: newMessage });
         }
     }
@@ -315,12 +331,12 @@ const InboxPage: React.FC<InboxPageProps> = ({ navigate, initialConversationId }
                                 </div>
                             </div>
                             <div className="p-4 border-t border-gray-700 bg-gray-800">
-                                 {error && <p className="text-red-500 text-sm mb-2 text-center">{error}</p>}
+                                 {error && <p className="text-red-400 text-sm mb-2 text-center">{error}</p>}
                                 <form onSubmit={handleTextSubmit} className="flex items-center space-x-2">
                                      {isHostForThisConvo && (
                                         <div className="flex space-x-1">
-                                            <button type="button" onClick={() => setShareModalOpen(true)} className="p-3 text-gray-300 bg-gray-700 rounded-full hover:bg-gray-600"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" /></svg></button>
-                                            <button type="button" onClick={() => setOfferModalOpen(true)} className="p-3 text-gray-300 bg-gray-700 rounded-full hover:bg-gray-600"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" /></svg></button>
+                                            <button type="button" onClick={() => setShareModalOpen(true)} disabled={isSending} className="p-3 text-gray-300 bg-gray-700 rounded-full hover:bg-gray-600 disabled:opacity-50"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" /></svg></button>
+                                            <button type="button" onClick={() => setOfferModalOpen(true)} disabled={isSending} className="p-3 text-gray-300 bg-gray-700 rounded-full hover:bg-gray-600 disabled:opacity-50"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" /></svg></button>
                                         </div>
                                     )}
                                     <input 
@@ -328,9 +344,10 @@ const InboxPage: React.FC<InboxPageProps> = ({ navigate, initialConversationId }
                                         value={newMessage}
                                         onChange={e => setNewMessage(e.target.value)}
                                         placeholder="Type your message..."
-                                        className="w-full p-3 border border-gray-600 rounded-full focus:outline-none focus:ring-2 focus:ring-brand bg-gray-700"
+                                        disabled={isSending}
+                                        className="w-full p-3 border border-gray-600 rounded-full focus:outline-none focus:ring-2 focus:ring-brand bg-gray-700 disabled:opacity-50"
                                     />
-                                    <button type="submit" className="bg-brand text-gray-900 rounded-full p-3 hover:bg-brand-dark transition">
+                                    <button type="submit" disabled={isSending} className="bg-brand text-gray-900 rounded-full p-3 hover:bg-brand-dark transition disabled:opacity-50">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
                                             <path d="M3.478 2.404a.75.75 0 0 0-.926.941l2.432 7.905H13.5a.75.75 0 0 1 0 1.5H4.984l-2.432 7.905a.75.75 0 0 0 .926.94 60.519 60.519 0 0 0 18.445-8.986.75.75 0 0 0 0-1.218A60.517 60.517 0 0 0 3.478 2.404Z" />
                                         </svg>

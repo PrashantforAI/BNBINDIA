@@ -237,3 +237,42 @@ Draft a warm, polite, and personalized response to this review. If it's positive
         return "Thank you for your feedback. We appreciate you taking the time to share your experience.";
     }
 };
+
+export const moderateMessage = async (text: string): Promise<{ compliant: boolean; reason: string }> => {
+    const prompt = `You are a content moderator for a vacation rental platform's chat feature. Your role is to ensure that users do not share contact information or external links to communicate outside the platform.
+    Analyze the following message and determine if it violates our policies.
+    Policies:
+    1.  Do not allow phone numbers (e.g., 9876543210, 987-654-3210, +91 98765 43210).
+    2.  Do not allow email addresses (e.g., user@example.com).
+    3.  Do not allow social media handles or links (e.g., @myprofile, instagram.com/user).
+    4.  Do not allow any external URLs or links (e.g., http://, www., .com, .in).
+
+    Message to analyze: "${text}"
+
+    Return a JSON object indicating if the message is compliant. If it is not compliant, provide a brief, user-friendly reason.
+    - If compliant, return {"compliant": true, "reason": ""}.
+    - If not compliant, return {"compliant": false, "reason": "Your message was blocked because it appears to contain contact information or an external link. Please remove it and try again."}.
+    `;
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        compliant: { type: Type.BOOLEAN },
+                        reason: { type: Type.STRING }
+                    }
+                }
+            }
+        });
+        const jsonText = response.text.trim();
+        return JSON.parse(jsonText);
+    } catch (error) {
+        console.error("Error moderating message:", error);
+        // Fail safe: if moderation fails, assume it's compliant to not block users unnecessarily.
+        return { compliant: true, reason: "" };
+    }
+};
