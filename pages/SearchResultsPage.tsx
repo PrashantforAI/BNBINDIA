@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { NavigateFunction, Page, Property, SearchFilters } from '../types';
 import { dataService } from '../services/dataService';
@@ -152,7 +153,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ navigate, initial
             ) : properties.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                     {properties.map(prop => (
-                        <PropertyCard key={prop.id} property={prop} navigate={navigate} />
+                        <PropertyCard key={prop.id} property={prop} navigate={navigate} searchFilters={filters} />
                     ))}
                 </div>
             ) : (

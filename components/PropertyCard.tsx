@@ -1,10 +1,12 @@
+
 import React from 'react';
-import { Property, NavigateFunction, Page } from '../types';
+import { Property, NavigateFunction, Page, SearchFilters } from '../types';
 import { useAuth } from '../hooks/useAuth';
 
 interface PropertyCardProps {
     property: Property;
     navigate: NavigateFunction;
+    searchFilters?: SearchFilters;
 }
 
 const StarIcon: React.FC<{ className?: string }> = ({ className }) => (
@@ -20,7 +22,7 @@ const HeartIcon: React.FC<{ filled: boolean, onClick: (e: React.MouseEvent) => v
 );
 
 
-const PropertyCard: React.FC<PropertyCardProps> = ({ property, navigate }) => {
+const PropertyCard: React.FC<PropertyCardProps> = ({ property, navigate, searchFilters }) => {
     const { user, toggleWishlist } = useAuth();
     const isWishlisted = user?.wishlist.includes(property.id) ?? false;
 
@@ -36,7 +38,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, navigate }) => {
     return (
         <div 
             className="group cursor-pointer transition-all duration-300 hover:-translate-y-1"
-            onClick={() => navigate(Page.PROPERTY, { id: property.id })}
+            onClick={() => navigate(Page.PROPERTY, { id: property.id, ...searchFilters })}
         >
             <div className="relative overflow-hidden rounded-xl shadow-lg group-hover:shadow-2xl group-hover:shadow-black/30 transition-shadow duration-300">
                 <img 

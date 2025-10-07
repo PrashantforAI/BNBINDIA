@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useMemo } from 'react';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import { View, Page, HOST_PAGES } from './types';
@@ -45,7 +46,14 @@ const AppContent: React.FC = () => {
             // Guest Pages
             case Page.HOME: return <HomePage {...props} />;
             case Page.SEARCH: return <SearchResultsPage navigate={navigate} initialFilters={view.params.filters} />;
-            case Page.PROPERTY: return <PropertyDetailsPage navigate={navigate} propertyId={view.params.id as string} offerPrice={view.params.offerPrice as number | undefined} />;
+            case Page.PROPERTY: return <PropertyDetailsPage 
+                navigate={navigate} 
+                propertyId={view.params.id as string} 
+                offerPrice={view.params.offerPrice as number | undefined}
+                initialCheckIn={view.params.checkIn as Date | undefined}
+                initialCheckOut={view.params.checkOut as Date | undefined}
+                initialGuests={view.params.guests as number | undefined}
+            />;
             case Page.DASHBOARD: return <DashboardPage {...props} />;
             case Page.CONFIRMATION: return <BookingConfirmationPage navigate={navigate} bookingId={view.params.bookingId as string} />;
             case Page.INBOX: return <InboxPage navigate={navigate} initialConversationId={view.params.conversationId as string} />;

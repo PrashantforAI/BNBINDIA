@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { NavigateFunction, Page, Conversation, Property, User, Booking, Message } from '../types';
 import { useAuth } from '../hooks/useAuth';
@@ -141,6 +142,59 @@ const MakeOfferModal: React.FC<{ isOpen: boolean, onClose: () => void, onSubmit:
     )
 }
 
+const BookingDetailsPanel: React.FC<{
+    relatedData?: { property?: Property, otherUser?: User, booking?: Booking };
+    navigate: NavigateFunction;
+}> = ({ relatedData, navigate }) => {
+    if (!relatedData) {
+        return <div className="p-4"><p className="text-gray-400">Loading details...</p></div>;
+    }
+    const { property, otherUser, booking } = relatedData;
+
+    if (!property) return <div className="p-4"><p className="text-gray-400">Loading property details...</p></div>;
+
+    if (booking) {
+        // Render booking details for hosts
+        const hostPayout = booking.totalPrice * 0.95;
+        return (
+            <div className="p-4 space-y-4">
+                <h3 className="font-bold text-lg text-gray-50">Reservation Details</h3>
+                <img src={property.images[0]} alt={property.title} className="rounded-lg object-cover w-full h-32 cursor-pointer" onClick={() => navigate(Page.PROPERTY, { id: property.id })} />
+                <div>
+                    <p className="font-semibold text-gray-200">{property.title}</p>
+                    <p className="text-sm text-gray-400">{property.location.city}</p>
+                </div>
+                <div className="text-sm space-y-2 border-t border-gray-700 pt-4 text-gray-300">
+                    <div className="flex justify-between items-center">
+                        <span>Status:</span> 
+                        <span className={`text-xs font-bold px-2 py-1 rounded-full ${booking.status === 'upcoming' ? 'bg-blue-900/50 text-blue-300' : 'bg-green-900/50 text-green-300'}`}>
+                            {booking.status.toUpperCase()}
+                        </span>
+                    </div>
+                    <div className="flex justify-between"><span>Guest:</span> <strong>{otherUser?.name}</strong></div>
+                    <div className="flex justify-between"><span>Dates:</span> <strong>{new Date(booking.startDate).toLocaleDateString()} - {new Date(booking.endDate).toLocaleDateString()}</strong></div>
+                    <div className="flex justify-between"><span>Guests:</span> <strong>{booking.guests}</strong></div>
+                    <div className="flex justify-between font-bold text-gray-50 border-t border-gray-700 pt-2 mt-2"><span>Your Payout:</span> <strong>₹{hostPayout.toLocaleString('en-IN')}</strong></div>
+                </div>
+            </div>
+        )
+    } else {
+        // Render inquiry details (the old view) for pre-booking messages
+        return (
+             <div className="p-4 space-y-4">
+                <h3 className="font-bold text-lg text-gray-50">About the Inquiry</h3>
+                <img src={property.images[0]} alt={property.title} className="rounded-lg object-cover w-full h-32 cursor-pointer" onClick={() => navigate(Page.PROPERTY, { id: property.id })} />
+                <div>
+                    <p className="font-semibold text-gray-200">{property.title}</p>
+                    <p className="text-sm text-gray-400">{property.location.city}</p>
+                </div>
+                 <button onClick={() => navigate(Page.PROPERTY, { id: property.id })} className="w-full text-center bg-gray-700 py-2 rounded-lg hover:bg-gray-600 transition text-sm font-semibold">View Listing</button>
+            </div>
+        )
+    }
+};
+
+
 const InboxPage: React.FC<InboxPageProps> = ({ navigate, initialConversationId }) => {
     const { user } = useAuth();
     const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -263,30 +317,6 @@ const InboxPage: React.FC<InboxPageProps> = ({ navigate, initialConversationId }
         setOfferModalOpen(false);
     };
 
-    const renderReservationDetails = () => {
-        if (!selectedConversation) return null;
-        const data = relatedData[selectedConversation.id];
-        if (!data?.property) return null;
-
-        return (
-            <div className="p-4 space-y-4">
-                <h3 className="font-bold text-lg text-gray-50">About the Listing</h3>
-                <img src={data.property.images[0]} alt={data.property.title} className="rounded-lg object-cover w-full h-32" />
-                <div>
-                    <p className="font-semibold text-gray-200">{data.property.title}</p>
-                    <p className="text-sm text-gray-400">{data.property.location.city}</p>
-                </div>
-                 {data.booking && (
-                     <div className="text-sm space-y-2 border-t border-gray-700 pt-4 text-gray-300">
-                        <div className="flex justify-between"><span>Dates:</span> <strong>{new Date(data.booking.startDate).toLocaleDateString()} - {new Date(data.booking.endDate).toLocaleDateString()}</strong></div>
-                        <div className="flex justify-between"><span>Guests:</span> <strong>{data.booking.guests}</strong></div>
-                    </div>
-                 )}
-                 <button onClick={() => navigate(Page.PROPERTY, { id: data.property!.id })} className="w-full text-center bg-gray-700 py-2 rounded-lg hover:bg-gray-600 transition text-sm font-semibold">View Listing</button>
-            </div>
-        )
-    };
-
     if (loading && conversations.length === 0) return <div className="text-center py-20">Loading messages...</div>;
     if (!user) return null;
     
@@ -399,7 +429,7 @@ const InboxPage: React.FC<InboxPageProps> = ({ navigate, initialConversationId }
                 </div>
                  {/* Reservation Details */}
                 <div className="w-1/3 border-l border-gray-700 overflow-y-auto bg-gray-800 hidden lg:block">
-                   {renderReservationDetails()}
+                   {selectedConversation && <BookingDetailsPanel relatedData={relatedData[selectedConversation.id]} navigate={navigate} />}
                 </div>
             </div>
              {isHostForThisConvo && selectedProperty && <SharePropertyModal isOpen={isShareModalOpen} onClose={() => setShareModalOpen(false)} onSelect={handleShareSelect} currentPropertyId={selectedProperty.id} />}

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useMemo } from 'react';
 import { SearchFilters } from '../types';
 import { parseSearchQuery } from '../services/geminiService';
 
@@ -28,6 +29,23 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
             guests: guests > 0 ? guests : undefined,
         });
     };
+    
+    const handleCheckInChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newCheckIn = e.target.value;
+        setCheckIn(newCheckIn);
+        // If the new check-in date is after the current check-out date, clear the check-out date
+        if (checkOut && new Date(newCheckIn) >= new Date(checkOut)) {
+            setCheckOut('');
+        }
+    };
+
+    const minCheckoutDate = useMemo(() => {
+        if (!checkIn) return '';
+        const checkInDate = new Date(checkIn);
+        // Add one day in UTC to avoid timezone pitfalls
+        checkInDate.setUTCDate(checkInDate.getUTCDate() + 1);
+        return checkInDate.toISOString().split('T')[0];
+    }, [checkIn]);
 
     const handleAiSearch = async () => {
         if (!aiQuery) return;
@@ -67,7 +85,8 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
                         id="check-in"
                         type="date"
                         value={checkIn}
-                        onChange={(e) => setCheckIn(e.target.value)}
+                        onChange={handleCheckInChange}
+                        min={new Date().toISOString().split('T')[0]}
                         className="w-full text-sm text-gray-200 focus:outline-none px-2 py-1 bg-transparent"
                         style={dateInputStyle}
                     />
@@ -79,6 +98,8 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
                         type="date"
                         value={checkOut}
                         onChange={(e) => setCheckOut(e.target.value)}
+                        min={minCheckoutDate}
+                        disabled={!checkIn}
                         className="w-full text-sm text-gray-200 focus:outline-none px-2 py-1 bg-transparent"
                         style={dateInputStyle}
                     />

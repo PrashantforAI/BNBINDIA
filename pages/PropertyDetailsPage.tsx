@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useMemo } from 'react';
 import { NavigateFunction, Page, Property, Review, User, Booking } from '../types';
 import { dataService } from '../services/dataService';
@@ -38,9 +39,12 @@ interface PropertyDetailsPageProps {
     navigate: NavigateFunction;
     propertyId: string;
     offerPrice?: number;
+    initialCheckIn?: Date;
+    initialCheckOut?: Date;
+    initialGuests?: number;
 }
 
-const PropertyDetailsPage: React.FC<PropertyDetailsPageProps> = ({ navigate, propertyId, offerPrice }) => {
+const PropertyDetailsPage: React.FC<PropertyDetailsPageProps> = ({ navigate, propertyId, offerPrice, initialCheckIn, initialCheckOut, initialGuests }) => {
     const { user, toggleWishlist } = useAuth();
     const [property, setProperty] = useState<Property | null>(null);
     const [host, setHost] = useState<User | null>(null);
@@ -130,7 +134,15 @@ const PropertyDetailsPage: React.FC<PropertyDetailsPageProps> = ({ navigate, pro
                         <AvailabilityCalendar propertyId={property.id} />
                     </div>
                     <div className="lg:col-span-1 relative">
-                        <StickyBookingWidget property={property} offerPrice={offerPrice} onReserve={handleReserve} bookings={bookings} />
+                        <StickyBookingWidget 
+                            property={property} 
+                            offerPrice={offerPrice} 
+                            onReserve={handleReserve} 
+                            bookings={bookings} 
+                            initialCheckIn={initialCheckIn}
+                            initialCheckOut={initialCheckOut}
+                            initialGuests={initialGuests}
+                        />
                     </div>
                 </div>
 
@@ -157,6 +169,9 @@ const PropertyDetailsPage: React.FC<PropertyDetailsPageProps> = ({ navigate, pro
                     onClose={() => setBookingModalOpen(false)}
                     onReserve={handleReserve}
                     bookings={bookings}
+                    initialCheckIn={initialCheckIn}
+                    initialCheckOut={initialCheckOut}
+                    initialGuests={initialGuests}
                 />
             )}
         </div>
@@ -590,11 +605,14 @@ const BookingForm: React.FC<{
     offerPrice?: number;
     onReserve: (details: Omit<Booking, 'id' | 'status' | 'guestId' | 'propertyId'>) => void;
     isMobile?: boolean;
-}> = ({ property, bookings, offerPrice, onReserve, isMobile = false }) => {
+    initialCheckIn?: Date;
+    initialCheckOut?: Date;
+    initialGuests?: number;
+}> = ({ property, bookings, offerPrice, onReserve, isMobile = false, initialCheckIn, initialCheckOut, initialGuests }) => {
     const { user } = useAuth();
-    const [checkIn, setCheckIn] = useState('');
-    const [checkOut, setCheckOut] = useState('');
-    const [guests, setGuests] = useState(1);
+    const [checkIn, setCheckIn] = useState(initialCheckIn ? dateToYyyyMmDd(initialCheckIn) : '');
+    const [checkOut, setCheckOut] = useState(initialCheckOut ? dateToYyyyMmDd(initialCheckOut) : '');
+    const [guests, setGuests] = useState(initialGuests || 1);
     const [isBooking, setIsBooking] = useState(false);
     const [bookingError, setBookingError] = useState<string | null>(null);
 
@@ -666,9 +684,10 @@ const BookingForm: React.FC<{
 
     const minCheckoutDate = useMemo(() => {
         if (!checkIn) return undefined;
-        const date = new Date(checkIn);
-        date.setDate(date.getDate() + 2); // JS date objects are tricky with timezones, adding 2 then slicing gets the next day reliably
-        return date.toISOString().split('T')[0];
+        const checkInDate = new Date(checkIn);
+        // Add one day in UTC to avoid timezone pitfalls
+        checkInDate.setUTCDate(checkInDate.getUTCDate() + 1);
+        return checkInDate.toISOString().split('T')[0];
     }, [checkIn]);
 
     return (
@@ -730,9 +749,17 @@ const BookingForm: React.FC<{
 };
 
 
-const StickyBookingWidget: React.FC<{property: Property; bookings: Booking[]; offerPrice?: number; onReserve: (details: Omit<Booking, 'id' | 'status' | 'guestId' | 'propertyId'>) => void;}> = ({ property, bookings, offerPrice, onReserve }) => (
+const StickyBookingWidget: React.FC<{
+    property: Property; 
+    bookings: Booking[]; 
+    offerPrice?: number; 
+    onReserve: (details: Omit<Booking, 'id' | 'status' | 'guestId' | 'propertyId'>) => void;
+    initialCheckIn?: Date;
+    initialCheckOut?: Date;
+    initialGuests?: number;
+}> = (props) => (
     <div className="hidden lg:block sticky top-28">
-        <BookingForm property={property} bookings={bookings} offerPrice={offerPrice} onReserve={onReserve} />
+        <BookingForm {...props} />
     </div>
 );
 
@@ -754,12 +781,16 @@ const MobileBookingModal: React.FC<{
     offerPrice?: number;
     onClose: () => void;
     onReserve: (details: Omit<Booking, 'id' | 'status' | 'guestId' | 'propertyId'>) => void;
-}> = ({ property, bookings, offerPrice, onClose, onReserve }) => {
+    initialCheckIn?: Date;
+    initialCheckOut?: Date;
+    initialGuests?: number;
+}> = (props) => {
+    const { onClose } = props;
     return (
         <div className="fixed inset-0 bg-black/70 z-50 flex flex-col justify-end animate-fade-in" onClick={onClose}>
             <div className="bg-gray-800 rounded-t-2xl p-6" onClick={e => e.stopPropagation()}>
                 <button onClick={onClose} className="absolute top-4 left-4 text-gray-400">&times; Close</button>
-                <BookingForm property={property} bookings={bookings} offerPrice={offerPrice} onReserve={onReserve} isMobile={true} />
+                <BookingForm {...props} isMobile={true} />
             </div>
         </div>
     )
